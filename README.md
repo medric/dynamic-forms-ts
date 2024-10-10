@@ -1,7 +1,3 @@
-Here’s a draft for your README:
-
----
-
 # Dynamic Forms TS
 
 ## Description
@@ -49,7 +45,7 @@ ts-dynamic-forms/
 1. **Define TypeScript Types**: Start by defining your TypeScript model, which will be parsed to generate the form schema.
 
     ```ts
-    interface User {
+    type User {
         firstName: string;
         lastName: string;
         age: number;
@@ -89,7 +85,3 @@ We welcome contributions! Please fork the repository and submit a pull request. 
 ## License
 
 MIT License
-
----
-
-This README provides a clear overview of the module, along with instructions on how to set it up and use it. Feel free to customize further!
