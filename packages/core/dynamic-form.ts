@@ -1,15 +1,22 @@
 import * as swc from '@swc/core';
+import pluralize from 'pluralize';
 
 import { FormDefinition, FormField, FormFieldType } from './types';
-import { capitalizeFirstLetter, compose, singularize } from './utils';
+import { capitalizeFirstLetter, compose } from '../utils/utils';
 
-class DynamicForm {
-  forms: Record<string, FormDefinition> = {};
+type DynamicFormConfig = {
+  filename: string;
+};
+
+export class DynamicForm {
+  models: Record<string, FormDefinition> = {};
 
   enums: Record<string, string[]> = {};
 
-  constructor() {
-    this.parse();
+  config: DynamicFormConfig;
+
+  constructor(config: DynamicFormConfig = { filename: './schema.ts' }) {
+    this.config = config;
   }
 
   TsKeywordType = this.tsKeywordTypeToForm.bind(this);
@@ -20,17 +27,23 @@ class DynamicForm {
     return { type: type.kind };
   }
 
-  tsArrayTypeToForm(type: swc.TsArrayType, propertyName: string = ''): FormField {
+  tsArrayTypeToForm(
+    type: swc.TsArrayType,
+    propertyName: string = ''
+  ): FormField {
     const elementType = type.elemType.type;
 
     let formType: string | FormField = 'unknown';
 
     if (elementType === 'TsTypeReference') {
-      formType = this.tsTypeReferenceToForm(type.elemType as swc.TsTypeReference).type;
+      const ref = this.tsTypeReferenceToForm(
+        type.elemType as swc.TsTypeReference
+      );
+      formType = ref.ref ?? (ref.type as FormFieldType);
     }
-    
+
     if (elementType === 'TsKeywordType') {
-      formType = `${this.tsKeywordTypeToForm(type.elemType as swc.TsKeywordType)}`;
+      formType = `${this.tsKeywordTypeToForm(type.elemType as swc.TsKeywordType).type}`;
     }
 
     if (elementType === 'TsArrayType') {
@@ -38,12 +51,13 @@ class DynamicForm {
     }
 
     if (elementType === 'TsTypeLiteral') {
-      const norm = compose(capitalizeFirstLetter, singularize);
-      const inferredName = norm(propertyName) ?? `Inferred${Object.keys(this.forms).length}`;
+      const norm = compose(capitalizeFirstLetter, pluralize.singular);
+      const inferredName =
+        norm(propertyName) ?? `Inferred${Object.keys(this.models).length}`;
       const form = this.tsLiteralTypeToForm(type.elemType as swc.TsTypeLiteral);
 
-      this.forms[inferredName] = form;
-      
+      this.models[inferredName] = form;
+
       formType = inferredName;
     }
 
@@ -61,21 +75,20 @@ class DynamicForm {
       return { type: 'enum', ref: type.typeName.value };
     }
 
-    return { type: 'object', ref: type.typeName.type };
+    return { type: 'object', ref: type.typeName.value };
   }
 
-  tsLiteralTypeToForm(literal: swc.TsTypeLiteral): FormDefinition  {
+  tsLiteralTypeToForm(literal: swc.TsTypeLiteral): FormDefinition {
     const record: FormDefinition = {};
     literal.members.forEach((member) => {
       const struct = member.type === 'TsPropertySignature' ? member : null;
-
-      console.log(struct)
 
       if (!struct) {
         return;
       }
 
-      const propertyName = struct.key.type === 'Identifier' ? struct.key.value : null;
+      const propertyName =
+        struct.key.type === 'Identifier' ? struct.key.value : null;
 
       if (!propertyName) {
         return;
@@ -91,10 +104,17 @@ class DynamicForm {
         return;
       }
 
-      // @ts-expect-error
-      const getFormDefinition = this[typeAnnotation.typeAnnotation.type] as (type: swc.TsType, propertyName?: string) => FormField ?? (() => null);
+      const getFormDefinition =
+        // @ts-expect-error
+        (this[typeAnnotation.typeAnnotation.type] as (
+          type: swc.TsType,
+          propertyName?: string
+        ) => FormField) ?? (() => null);
 
-      const propertyType = getFormDefinition(typeAnnotation.typeAnnotation, propertyName);
+      const propertyType = getFormDefinition(
+        typeAnnotation.typeAnnotation,
+        propertyName
+      );
 
       if (!propertyType) {
         return;
@@ -107,9 +127,13 @@ class DynamicForm {
   }
 
   typeDeclarationToForm(typeDeclaration: swc.TsTypeAliasDeclaration) {
-    const formName = typeDeclaration.id.type === 'Identifier' ? typeDeclaration.id.value : null;
+    const formName =
+      typeDeclaration.id.type === 'Identifier'
+        ? typeDeclaration.id.value
+        : null;
 
-    const isTypeLiteral = typeDeclaration.typeAnnotation.type === 'TsTypeLiteral';
+    const isTypeLiteral =
+      typeDeclaration.typeAnnotation.type === 'TsTypeLiteral';
 
     if (!isTypeLiteral || !formName) {
       return {};
@@ -119,25 +143,30 @@ class DynamicForm {
 
     const form = this.tsLiteralTypeToForm(literal);
 
-    this.forms[formName] = form;
+    this.models[formName] = form;
   }
 
   parseEnum(enumDeclaration: swc.TsEnumDeclaration) {
-    const enumName = enumDeclaration.id.type === 'Identifier' ? enumDeclaration.id.value : null;
+    const enumName =
+      enumDeclaration.id.type === 'Identifier'
+        ? enumDeclaration.id.value
+        : null;
 
     if (!enumName) {
       return;
     }
 
-    const enumValues = enumDeclaration.members.map((member) => {
-      return member.id.type === 'Identifier' ? member.id.value : null;
-    }).filter((value) => value !== null);
+    const enumValues = enumDeclaration.members
+      .map((member) => {
+        return member.id.type === 'Identifier' ? member.id.value : null;
+      })
+      .filter((value) => value !== null);
 
     this.enums[enumName] = enumValues;
   }
 
-  async parse(filename: string = './schema.ts') {
-    const res = await swc.parseFile(filename, {
+  async parse() {
+    const res = await swc.parseFile(this.config.filename, {
       // @todo: Add into config
       syntax: 'typescript',
       target: 'es2020',
@@ -149,7 +178,9 @@ class DynamicForm {
       this.parseEnum(enumDeclaration);
     });
 
-    const typesDeclarations = res.body.filter((node) => node.type === 'TsTypeAliasDeclaration');
+    const typesDeclarations = res.body.filter(
+      (node) => node.type === 'TsTypeAliasDeclaration'
+    );
 
     if (!typesDeclarations) {
       throw new Error('No types declarations found');
@@ -159,12 +190,9 @@ class DynamicForm {
       this.typeDeclarationToForm(typeDeclaration);
     });
 
-    // console.log(this.forms)
-  }
-
-  render() {
-    // TODO: Implement render method
+    return {
+      models: this.models,
+      enums: this.enums,
+    };
   }
 }
-
-const form = new DynamicForm();
