@@ -1,5 +1,4 @@
 {
-  "extends": "../../tsconfig.json",
   "compilerOptions": {
     "target": "ES2020",
     "useDefineForClassFields": true,
@@ -19,7 +18,12 @@
     "strict": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
-    "noFallthroughCasesInSwitch": true
+    "noFallthroughCasesInSwitch": true,
+    "paths": {
+      "~core/*": ["../../packages/core/*"],
+      "~plugins/*": ["../../packages/plugins/*"],
+      "~renderers/*": ["../../packages/renderers/*"]
+    },
   },
   "include": ["src"]
 }

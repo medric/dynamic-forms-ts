@@ -10,6 +10,7 @@ export default defineConfig({
   resolve: {
     alias: {
       '~renderers': path.resolve(__dirname, '../../packages/renderers'),
+      '~core': path.resolve(__dirname, '../../packages/core'),
     },
   },
 });

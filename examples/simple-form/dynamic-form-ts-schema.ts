@@ -1,3 +1,5 @@
+import { FieldNumber, FieldString } from '../../packages/core/types';
+
 type Post = {
   title: string;
   content: string;
@@ -14,9 +16,9 @@ enum UserRole {
 }
 
 type User = {
-  firstame: string;
-  lastname: string;
-  age: number;
+  firstname: FieldString<1, 50, '[a-zA-Z]+$', 'Incorrect name', 'First Name'>;
+  lastname: FieldString<1, 50, '[a-zA-Z]+$', 'Incorrect name', 'Last Name'>;
+  age: FieldNumber<1, 100, ''>;
   sex: string;
   job: string;
   posts: Post[];

@@ -154,10 +154,29 @@ export function DynamicForm<IFormInput extends FieldValues>({
       );
     }
 
+    const formField = formDefinition[field];
+
+    const { message, pattern, ...validators } = formField.validators ?? {};
+
+    const filteredValidators = Object.entries(validators).reduce(
+      (acc, [validator, value]) => {
+        if (value !== undefined) {
+          acc[validator] = value;
+        }
+        return acc;
+      },
+      {} as Record<string, unknown>
+    );
+
     // Render regular inputs
+    const inputLabelText = formField.label ?? field;
     return (
-      <div key={key}>
-        {renderLabel ? renderLabel(key) : <label htmlFor={key}>{key}</label>}
+      <div key={field}>
+        {renderLabel ? (
+          renderLabel(field)
+        ) : (
+          <label htmlFor={field}>{inputLabelText}</label>
+        )}
         {renderInput ? (
           renderInput(
             key,
@@ -167,7 +186,21 @@ export function DynamicForm<IFormInput extends FieldValues>({
           )
         ) : (
           <>
-            <input {...register(field)} />
+            <input
+              {...register(field, {
+                required: formField.required ? (message as string) : false,
+                ...filteredValidators,
+                validate: (value) => {
+                  if (
+                    typeof pattern === 'string' &&
+                    !RegExp(pattern).test(value)
+                  ) {
+                    return (message as string) ?? 'This field is invalid';
+                  }
+                  return true;
+                },
+              })}
+            />
             {errors?.[field] && typeof errors[field].message === 'string' && (
               <p>{errors[field].message}</p>
             )}

@@ -33,13 +33,22 @@ export type FormFieldTypeParsed =
   | never
   | Function;
 
+type ValidatorType =
+  | 'min'
+  | 'max'
+  | 'maxLength'
+  | 'minLength'
+  | 'pattern'
+  | 'message';
+
+type ValidatorRule = string | number;
+
 export type FormField = {
   type: FormFieldType | FormFieldTypeParsed;
   ref?: string | FormField;
-};
-
-export type DfOptions = {
-  _df: 'disabled';
+  required?: boolean;
+  label?: string;
+  validators?: Partial<Record<ValidatorType, ValidatorRule>>;
 };
 
 export interface FormDefinition {
@@ -50,3 +59,20 @@ export type FormSchema = {
   models: Record<string, FormDefinition>;
   enums: Record<string, string[]>;
 };
+
+export type FieldString<
+  Min = number,
+  Max = number,
+  Pattern = string,
+  Message = string,
+  Label = string,
+> = string;
+
+export type FieldNumber<
+  Min = number,
+  Max = number,
+  Message = string,
+  Label = string,
+> = number;
+
+export type FieldEmail<Message = string, Label = string> = string;

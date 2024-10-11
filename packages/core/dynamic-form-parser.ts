@@ -23,6 +23,11 @@ export class DynamicFormParser {
   TsArrayType = this.tsArrayTypeToForm.bind(this);
   TsTypeReference = this.tsTypeReferenceToForm.bind(this);
 
+  // Custom types resolvers
+  FieldString = this.tsFieldStringToForm.bind(this);
+  FieldEmail = this.tsFieldEmailToForm.bind(this);
+  FieldNumber = this.tsFieldNumberToForm.bind(this);
+
   tsKeywordTypeToForm(type: swc.TsKeywordType): FormField {
     return { type: type.kind };
   }
@@ -64,6 +69,56 @@ export class DynamicFormParser {
     return { type: 'array', ref: formType };
   }
 
+  tsFieldNumberToForm(type: swc.TsTypeReference): FormField {
+    const [min, max, message, label] = type.typeParams?.params.map((param) => {
+      if (param.type !== 'TsLiteralType') {
+        return null;
+      }
+      const paramType = param as swc.TsLiteralType;
+      const literalType = paramType.literal as
+        | swc.NumericLiteral
+        | swc.StringLiteral;
+      return literalType.value;
+    }) as [number, number, string, string];
+
+    return { type: 'number', label, validators: { min, max, message } };
+  }
+
+  tsFieldStringToForm(type: swc.TsTypeReference): FormField {
+    const [minLength, maxLength, pattern, message, label] =
+      type.typeParams?.params.map((param) => {
+        if (param.type !== 'TsLiteralType') {
+          return null;
+        }
+        const paramType = param as swc.TsLiteralType;
+        const literalType = paramType.literal as
+          | swc.NumericLiteral
+          | swc.StringLiteral;
+        return literalType.value;
+      }) as [number, number, string, string, string];
+
+    return {
+      type: 'string',
+      label,
+      validators: { minLength, maxLength, pattern, message },
+    };
+  }
+
+  tsFieldEmailToForm(type: swc.TsTypeReference): FormField {
+    const [message, label] = type.typeParams?.params.map((param) => {
+      if (param.type !== 'TsLiteralType') {
+        return null;
+      }
+      const paramType = param as swc.TsLiteralType;
+      const literalType = paramType.literal as
+        | swc.NumericLiteral
+        | swc.StringLiteral;
+      return literalType.value;
+    }) as [string, string];
+
+    return { type: 'email', label, validators: { message } };
+  }
+
   tsTypeReferenceToForm(type: swc.TsTypeReference): FormField {
     if (type.typeName.type !== 'Identifier') {
       return { type: 'unknown' };
@@ -71,11 +126,22 @@ export class DynamicFormParser {
 
     const isEnum = this.enums[type.typeName.value] !== undefined;
 
+    const typeName = type.typeName.value;
+
     if (isEnum) {
-      return { type: 'enum', ref: type.typeName.value };
+      return { type: 'enum', ref: typeName };
     }
 
-    return { type: 'object', ref: type.typeName.value };
+    // @ts-expect-error
+    const typeResolver = this[typeName] as
+      | ((type: swc.TsTypeReference) => FormField)
+      | undefined;
+
+    if (typeResolver) {
+      return typeResolver(type);
+    }
+
+    return { type: 'object', ref: typeName };
   }
 
   tsLiteralTypeToForm(literal: swc.TsTypeLiteral): FormDefinition {
@@ -89,6 +155,8 @@ export class DynamicFormParser {
 
       const propertyName =
         struct.key.type === 'Identifier' ? struct.key.value : null;
+
+      const isOptional = struct.optional ?? false;
 
       if (!propertyName) {
         return;
@@ -104,9 +172,11 @@ export class DynamicFormParser {
         return;
       }
 
+      const { type } = typeAnnotation.typeAnnotation;
+
       const getFormDefinition =
         // @ts-expect-error
-        (this[typeAnnotation.typeAnnotation.type] as (
+        (this[type] as (
           type: swc.TsType,
           propertyName?: string
         ) => FormField) ?? (() => null);
@@ -120,7 +190,10 @@ export class DynamicFormParser {
         return;
       }
 
-      record[propertyName] = propertyType;
+      record[propertyName] = {
+        ...propertyType,
+        required: !isOptional,
+      };
     });
 
     return record;
@@ -165,7 +238,7 @@ export class DynamicFormParser {
     this.enums[enumName] = enumValues;
   }
 
-  fromClass<C extends new (...args: any[]) => any>(constructor: C) {
+  fromClass<C extends new (...args: []) => any>(constructor: C) {
     const instance = new constructor();
     const properties = Object.keys(instance);
 

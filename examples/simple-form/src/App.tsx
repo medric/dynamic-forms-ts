@@ -1,6 +1,6 @@
 import './App.css';
 
-import formSchema from './generated-form-schema.json';
+import formSchema from './dynamic-form-ts-schema.json';
 
 import { DynamicForm } from '~renderers/dynamic-form';
 
