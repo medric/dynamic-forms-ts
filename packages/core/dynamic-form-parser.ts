@@ -235,13 +235,16 @@ export class DynamicFormParser {
       })
       .filter((value) => value !== null);
 
-    this.enums[enumName] = enumValues;
+    this.enums[enumName] = enumValues.filter(
+      (value): value is string => value !== null
+    );
   }
 
   fromClass<C extends new (...args: []) => any>(constructor: C) {
     const instance = new constructor();
     const properties = Object.keys(instance);
 
+    // @todo -> handle validation
     const form: Record<string, FormField> = properties.reduce(
       (acc, property) => {
         const value = instance[property];
@@ -282,9 +285,11 @@ export class DynamicFormParser {
 
     const enums = res.body.filter((node) => node.type === 'TsEnumDeclaration');
 
-    enums.forEach((enumDeclaration) => {
-      this.parseEnum(enumDeclaration);
-    });
+    (enums as swc.TsEnumDeclaration[]).forEach(
+      (enumDeclaration: swc.TsEnumDeclaration) => {
+        this.parseEnum(enumDeclaration);
+      }
+    );
 
     const typesDeclarations = res.body.filter(
       (node) => node.type === 'TsTypeAliasDeclaration'
@@ -294,9 +299,11 @@ export class DynamicFormParser {
       throw new Error('No types declarations found');
     }
 
-    typesDeclarations.forEach((typeDeclaration) => {
-      this.typeDeclarationToForm(typeDeclaration);
-    });
+    (typesDeclarations as swc.TsTypeAliasDeclaration[]).forEach(
+      (typeDeclaration) => {
+        this.typeDeclarationToForm(typeDeclaration);
+      }
+    );
 
     return {
       models: this.models,

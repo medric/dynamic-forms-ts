@@ -201,9 +201,7 @@ export function DynamicForm<IFormInput extends FieldValues>({
                 },
               })}
             />
-            {errors?.[field] && typeof errors[field].message === 'string' && (
-              <p>{errors[field].message}</p>
-            )}
+            {errors?.[field]?.message && <p>{String(errors[field]?.message) ?? ''}</p>}
           </>
         )}
       </div>

@@ -35,7 +35,7 @@ type User = {
 
 // Alternatively, you can use the class syntax
 class PhoneForm {
-  num: string = '';
+  num: FieldString<1, 50, '', 'Incorrect phone number', 'Phone Number'> = '';
   type: 'home' | 'work' = 'home';
 }
 
