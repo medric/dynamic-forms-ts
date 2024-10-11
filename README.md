@@ -153,10 +153,11 @@ import { DynamicForm } from 'dynamic-forms-ts'
 
 const UserForm = () => (
   <DynamicForm
-    formDefinition={formSchema.models.User}
+    model="User"
     formSchema={formSchema}
     onSubmit={handleUserFormSubmit}
     level={0}
+    title="User"
   />
 );
 
