@@ -12,7 +12,7 @@ import classNames from 'classnames';
 import { FormDefinition, FormField, FormSchema } from '~core/types';
 
 interface SchemaRendererProps {
-  formDefinition: FormDefinition;
+  model: string;
   formSchema: FormSchema;
   level: number;
   parentField: string;
@@ -26,7 +26,7 @@ interface SchemaRendererProps {
 }
 
 const SchemaRenderer = React.memo(function SchemaRenderer({
-  formDefinition,
+  model,
   formSchema,
   level,
   parentField,
@@ -37,7 +37,7 @@ const SchemaRenderer = React.memo(function SchemaRenderer({
     <div>
       <h3>{parentField}</h3>
       <DynamicForm
-        formDefinition={formDefinition}
+        model={model}
         formSchema={formSchema}
         level={level + 1}
         parentKey={parentField}
@@ -77,7 +77,7 @@ const EnumRenderer = React.memo(function EnumRenderer<
 });
 
 interface DynamicFormProps<IFormInput extends FieldValues> {
-  formDefinition: FormDefinition;
+  model: keyof FormSchema['models'];
   formSchema: FormSchema;
   level?: number;
   parentKey?: string;
@@ -94,7 +94,7 @@ interface DynamicFormProps<IFormInput extends FieldValues> {
 }
 
 export function DynamicForm<IFormInput extends FieldValues>({
-  formDefinition,
+  model,
   formSchema,
   level = 0,
   parentKey = '',
@@ -117,7 +117,7 @@ export function DynamicForm<IFormInput extends FieldValues>({
       return (
         <SchemaRenderer
           key={field}
-          formDefinition={formSchema.models[value.ref]}
+          model={value.ref}
           formSchema={formSchema}
           level={level + 1}
           parentField={field}
@@ -131,7 +131,7 @@ export function DynamicForm<IFormInput extends FieldValues>({
       return (
         <SchemaRenderer
           key={field}
-          formDefinition={formSchema.models[value.ref]}
+          model={value.ref}
           formSchema={formSchema}
           level={level + 1}
           parentField={field}
@@ -154,7 +154,7 @@ export function DynamicForm<IFormInput extends FieldValues>({
       );
     }
 
-    const formField = formDefinition[field];
+    const formField = formSchema.models[model][key];
 
     const { message, pattern, ...validators } = formField.validators ?? {};
 
@@ -210,8 +210,10 @@ export function DynamicForm<IFormInput extends FieldValues>({
     );
   };
 
+  const form = formSchema.models[model];
+
   const renderForm = () => {
-    return Object.entries(formDefinition).map(([key, value]) =>
+    return Object.entries(form).map(([key, value]) =>
       renderFormElement(key, value)
     );
   };

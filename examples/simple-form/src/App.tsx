@@ -13,7 +13,7 @@ function App() {
     <>
       <div id="user-form">
         <DynamicForm
-          formDefinition={formSchema.models.User}
+          model="User"
           formSchema={formSchema}
           onSubmit={handleUserFormSubmit}
           level={0}
