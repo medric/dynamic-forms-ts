@@ -1,5 +1,5 @@
 {
-  "name": "dynamic-forms-ts",
+  "name": "ts-dynamic-forms",
   "version": "1.0.0",
   "description": "",
   "main": "index.ts",
@@ -9,12 +9,14 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "classnames": "^2.5.1",
     "nanoid": "^5.0.7",
     "pluralize": "^8.0.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-hook-form": "^7.53.0",
-    "typescript": "^5.6.3"
+    "typescript": "^5.6.3",
+    "vite": "^5.4.8"
   },
   "devDependencies": {
     "@jest/globals": "^29.7.0",

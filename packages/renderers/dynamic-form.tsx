@@ -5,8 +5,10 @@ import {
   FieldValues,
   Path,
   UseFormRegister,
+  FormState,
 } from 'react-hook-form';
 import { nanoid } from 'nanoid';
+import classNames from 'classnames';
 import { FormDefinition, FormField, FormSchema } from '~core/types';
 
 interface SchemaRendererProps {
@@ -18,7 +20,8 @@ interface SchemaRendererProps {
   renderInput?: (
     key: string,
     type: FormField['type'],
-    register: UseFormRegister<FieldValues>
+    register: UseFormRegister<FieldValues>,
+    formState: FormState<FieldValues>
   ) => React.ReactNode;
 }
 
@@ -33,7 +36,7 @@ const SchemaRenderer = React.memo(function SchemaRenderer({
   return (
     <div>
       <h3>{parentField}</h3>
-      <DefaultFormRenderer
+      <DynamicForm
         formDefinition={formDefinition}
         formSchema={formSchema}
         level={level + 1}
@@ -73,30 +76,37 @@ const EnumRenderer = React.memo(function EnumRenderer<
   );
 });
 
-interface DefaultFormRendererProps<IFormInput extends FieldValues> {
+interface DynamicFormProps<IFormInput extends FieldValues> {
   formDefinition: FormDefinition;
   formSchema: FormSchema;
   level?: number;
   parentKey?: string;
+  title?: string;
+  className?: string;
   onSubmit?: SubmitHandler<IFormInput>;
   renderLabel?: (key: string) => React.ReactNode;
   renderInput?: (
     key: string,
     type: FormField['type'],
-    register: UseFormRegister<FieldValues>
+    register: UseFormRegister<FieldValues>,
+    formState: FormState<FieldValues>
   ) => React.ReactNode;
 }
 
-export function DefaultFormRenderer<IFormInput extends FieldValues>({
+export function DynamicForm<IFormInput extends FieldValues>({
   formDefinition,
   formSchema,
   level = 0,
   parentKey = '',
+  title,
+  className,
   onSubmit,
   renderLabel,
   renderInput,
-}: DefaultFormRendererProps<IFormInput>) {
-  const { register, handleSubmit } = useForm<IFormInput>();
+}: DynamicFormProps<IFormInput>) {
+  const { register, handleSubmit, formState } = useForm<IFormInput>();
+
+  const { errors } = formState;
 
   const formId = `dynamic-form-${nanoid()}`;
 
@@ -149,9 +159,19 @@ export function DefaultFormRenderer<IFormInput extends FieldValues>({
       <div key={key}>
         {renderLabel ? renderLabel(key) : <label htmlFor={key}>{key}</label>}
         {renderInput ? (
-          renderInput(key, value.type, register as UseFormRegister<FieldValues>)
+          renderInput(
+            key,
+            value.type,
+            register as UseFormRegister<FieldValues>,
+            formState
+          )
         ) : (
-          <input {...register(field)} />
+          <>
+            <input {...register(field)} />
+            {errors?.[field] && typeof errors[field].message === 'string' && (
+              <p>{errors[field].message}</p>
+            )}
+          </>
         )}
       </div>
     );
@@ -168,7 +188,12 @@ export function DefaultFormRenderer<IFormInput extends FieldValues>({
   }
 
   return (
-    <form id={formId} onSubmit={handleSubmit(onSubmit ?? (() => {}))}>
+    <form
+      id={formId}
+      className={classNames('dynamic-form', className)}
+      onSubmit={handleSubmit(onSubmit ?? (() => {}))}
+    >
+      {title && <h2>{title}</h2>}
       {renderForm()}
       <input type="submit" />
     </form>

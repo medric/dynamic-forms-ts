@@ -1,87 +1,146 @@
 # Dynamic Forms TS
 
-## Description
+## Overview
 
-**Dynamic Forms TS** is a TypeScript-first utility that parses TypeScript types, automatically generates form schemas, and dynamically builds React forms using [React Hook Form](https://react-hook-form.com/). It simplifies the process of creating robust, type-safe forms in React by leveraging your existing TypeScript models.
+**Dynamic Forms TS** is a TypeScript-first utility that automates the creation of dynamic, type-safe forms in React. By parsing TypeScript types, this module generates form schemas and builds forms dynamically using [React Hook Form](https://react-hook-form.com/). It helps you streamline form development, ensuring that your forms align with TypeScript models and business logic, while reducing boilerplate and improving maintainability.
 
-This module automates form creation, ensuring the forms are fully type-checked and align with your business logic, reducing boilerplate code and improving maintainability.
+⚠️ Note: This module is currently experimental and not intended for production use. It is mainly for testing and exploration purposes. I'm still evaluating its overall usefulness and real-world applicability.
 
-## Features
-- Parse TypeScript types to generate form schemas.
-- Build dynamic React forms with zero manual form configuration.
-- Integrates seamlessly with [React Hook Form](https://react-hook-form.com/).
-- Type-safe form generation based on TypeScript models.
-- Highly customizable and extensible.
+## Key Features
+- **TypeScript-Driven**: Automatically generates form schemas from TypeScript models.
+- **Dynamic Form Generation**: Build dynamic React forms with zero manual configuration.
+- **Seamless Integration**: Works out of the box with [React Hook Form](https://react-hook-form.com/).
+- **Type-Safe**: Ensures form fields are type-checked based on your TypeScript definitions.
+- **Customizable and Extensible**: Adaptable to various use cases with full customization options.
 
 ## Directory Structure
 
 ```bash
 ts-dynamic-forms/
 ├── packages/
-│   ├── core/            # Parser & Form schema generators
-│   ├── renderers/       # React form renderers 
-│   ├── utils/           # Helper utilities
-│   └── plugins/            
-├── tests/                # Unit tests for schema parsing and form generation
-├── README.md             # Project documentation
-└── package.json          # NPM package configuration
+│   ├── core/            # Core logic for parsing and generating form schemas
+│   ├── renderers/       # React form components for rendering schemas
+│   ├── utils/           # Helper utilities and tools
+│   └── plugins/         # Optional plugins for schema generation or form rendering
+├── tests/               # Unit tests for schema parsing and form rendering
+├── README.md            # Documentation
+└── package.json         # NPM configuration
 ```
 
-## Setup
+## Installation
 
 1. Clone the repository:
-    ```sh
+    ```bash
     git clone https://github.com/medric/ts-dynamic-forms
     cd ts-dynamic-forms
     ```
 
-2. Install dependencies:
-    ```sh
+2. Install the dependencies:
+    ```bash
     npm install
     ```
 
 ## Usage
 
-1. **Define TypeScript Types**: Start by defining your TypeScript model, which will be parsed to generate the form schema.
+### 1. Define TypeScript Types
 
-    ```ts
-    type User {
-        firstName: string;
-        lastName: string;
-        age: number;
-        email: string;
-    }
-    ```
+Start by defining your TypeScript model, which will serve as the foundation for generating the form schema.
 
-2. **Generate Form Schema**: Use the `generateSchema` utility to create the form schema from your TypeScript types.
+```ts
+type User = {
+  firstName: string;
+  lastName: string;
+  age: number;
+  email: string;
+};
+```
 
-    ```ts
-    import { generateSchema } from 'ts-dynamic-forms';
-    
-    const userSchema = generateSchema<User>();
-    ```
+### 2. Generate Form Schema
 
-3. **Create a Dynamic Form**: Leverage the dynamic form component powered by React Hook Form to generate the form UI based on the schema.
+You can generate form schemas using two approaches:
 
-    ```tsx
-    import React from 'react';
-    import { DynamicForm } from 'ts-dynamic-forms';
+#### a. Build-Time/Server-Side Parsing
+You can write the parsed form schema to a JSON file and serve it, or use an endpoint to parse and return the JSON payload on the fly. This gives you flexibility depending on whether you want to pre-generate the schema or handle it dynamically at runtime.
 
-    const UserForm = () => {
-      return (
-        <DynamicForm schema={userSchema} onSubmit={data => console.log(data)} />
-      );
-    };
+```ts
+import { DynamicFormParser } from 'ts-dynamic-forms';
 
-    export default UserForm;
-    ```
+const parser = new DynamicFormParser({ filename: 'schema.ts' });
+const formSchema = parser.parse();
 
-4. **Customize**: Add validation, default values, or other configurations directly to the generated schema for full control over your form.
+// Write the output to a JSON file to serve it statically or via an API endpoint
+// Alternatively, expose an API that parses and returns the JSON payload dynamically
+```
+
+If you're using Vite, you can streamline the process by using the provided generateFormSchemaVitePlugin:
+```ts
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
+import path from 'path';
+import { generateFormSchemaVitePlugin } from 'ts-dynamic-forms';
+
+export default defineConfig({
+  plugins: [react(), generateFormSchemaVitePlugin()],
+});
+```
+
+This approach allows you to either pre-generate the schema or dynamically generate and serve it on-demand, offering flexibility for different use cases.
+
+#### b. Inline Model Parsing
+
+Alternatively, use class-based models to define and parse forms inline:
+
+```ts
+class PhoneForm {
+  num: string = '';
+  type: 'home' | 'work' = 'home';
+}
+
+class UserForm {
+  firstname: string = '';
+  lastname: string = '';
+  age: number = 0;
+  phone: PhoneForm = new PhoneForm();
+  posts: string[] = [''];
+}
+
+const parser = new DynamicFormParser();
+
+// Parse the form models
+parser.fromClass(PhoneForm);
+parser.fromClass(UserForm);
+
+const formSchema = parser.getFormSchema();
+```
+
+### 3. Create a Dynamic Form
+
+Once you have the schema, use the `DynamicForm` component to automatically generate the form UI.
+
+```tsx
+import React from 'react';
+import { DynamicForm } from 'ts-dynamic-forms';
+
+const UserForm = () => (
+  <DynamicForm
+    formDefinition={formSchema.models.User}
+    formSchema={formSchema}
+    onSubmit={handleUserFormSubmit}
+    level={0}
+  />
+);
+
+export default UserForm;
+```
+
+### 4. Customize
+
+You can further customize the generated form by adding validation rules, default values, or other configurations directly within the schema to meet specific business needs.
 
 ## Contributing
 
-We welcome contributions! Please fork the repository and submit a pull request. For major changes, please open an issue first to discuss what you'd like to change.
+Contributions are welcome! If you'd like to contribute, please fork the repository and submit a pull request. For major changes, open an issue first to discuss your proposal.
 
 ## License
 
-MIT License
+This project is licensed under the MIT License.

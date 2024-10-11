@@ -1,11 +1,11 @@
 import * as swc from '@swc/core';
-import { DynamicForm } from '~core/dynamic-form';
+import { DynamicFormParser } from '~core/dynamic-form-parser';
 
 describe('DynamicForm', () => {
-  let dynamicForm: DynamicForm;
+  let dynamicFormParser: DynamicFormParser;
 
   beforeEach(() => {
-    dynamicForm = new DynamicForm();
+    dynamicFormParser = new DynamicFormParser();
   });
 
   describe('tsKeywordTypeToForm', () => {
@@ -15,7 +15,7 @@ describe('DynamicForm', () => {
         kind: 'string',
         span: { start: 0, end: 0, ctxt: 0 },
       };
-      const result = dynamicForm.tsKeywordTypeToForm(keywordType);
+      const result = dynamicFormParser.tsKeywordTypeToForm(keywordType);
       expect(result).toEqual({ type: 'string' });
     });
   });
@@ -31,14 +31,14 @@ describe('DynamicForm', () => {
         },
         span: { start: 0, end: 0, ctxt: 0 },
       };
-      const result = dynamicForm.tsArrayTypeToForm(arrayType);
+      const result = dynamicFormParser.tsArrayTypeToForm(arrayType);
       expect(result).toEqual({ type: 'array', ref: 'string' });
     });
   });
 
   describe('tsTypeReferenceToForm', () => {
     it('should return the correct form field for a type reference', () => {
-      dynamicForm.enums = { MyEnum: ['VALUE1', 'VALUE2'] };
+      dynamicFormParser.enums = { MyEnum: ['VALUE1', 'VALUE2'] };
       const typeReference: swc.TsTypeReference = {
         type: 'TsTypeReference',
         typeName: {
@@ -49,7 +49,7 @@ describe('DynamicForm', () => {
         },
         span: { start: 0, end: 0, ctxt: 0 },
       };
-      const result = dynamicForm.tsTypeReferenceToForm(typeReference);
+      const result = dynamicFormParser.tsTypeReferenceToForm(typeReference);
       expect(result).toEqual({ type: 'enum', ref: 'MyEnum' });
     });
   });
@@ -85,7 +85,7 @@ describe('DynamicForm', () => {
         ],
         span: { start: 0, end: 0, ctxt: 0 },
       };
-      const result = dynamicForm.tsLiteralTypeToForm(typeLiteral);
+      const result = dynamicFormParser.tsLiteralTypeToForm(typeLiteral);
       expect(result).toEqual({ property1: { type: 'string' } });
     });
   });
@@ -132,8 +132,8 @@ describe('DynamicForm', () => {
         declare: false,
         span: { start: 0, end: 0, ctxt: 0 },
       };
-      dynamicForm.typeDeclarationToForm(typeDeclaration);
-      expect(dynamicForm.models).toEqual({
+      dynamicFormParser.typeDeclarationToForm(typeDeclaration);
+      expect(dynamicFormParser.models).toEqual({
         MyType: { property1: { type: 'string' } },
       });
     });
@@ -169,8 +169,8 @@ describe('DynamicForm', () => {
         isConst: boolean;
         span: { start: number; end: number; ctxt: number };
       };
-      dynamicForm.parseEnum(enumDeclaration);
-      expect(dynamicForm.enums).toEqual({
+      dynamicFormParser.parseEnum(enumDeclaration);
+      expect(dynamicFormParser.enums).toEqual({
         MyEnum: ['VALUE1', 'VALUE2'],
       });
     });
@@ -260,7 +260,7 @@ describe('DynamicForm', () => {
         type: 'Module',
       });
 
-      const result = await dynamicForm.parse();
+      const result = await dynamicFormParser.parse();
       expect(result).toEqual({
         models: { MyType: { property1: { type: 'string' } } },
         enums: { MyEnum: ['VALUE1', 'VALUE2'] },

@@ -2,7 +2,7 @@ import './App.css';
 
 import formSchema from './generated-form-schema.json';
 
-import { DefaultFormRenderer } from '~renderers/default-renderer';
+import { DynamicForm } from '~renderers/dynamic-form';
 
 function App() {
   const handleUserFormSubmit = (data: typeof formSchema.models.User) => {
@@ -12,11 +12,12 @@ function App() {
   return (
     <>
       <div id="user-form">
-        <DefaultFormRenderer
+        <DynamicForm
           formDefinition={formSchema.models.User}
           formSchema={formSchema}
           onSubmit={handleUserFormSubmit}
           level={0}
+          title="User"
         />
       </div>
     </>

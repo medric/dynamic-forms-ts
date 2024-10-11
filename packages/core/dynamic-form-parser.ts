@@ -4,18 +4,18 @@ import pluralize from 'pluralize';
 import { FormDefinition, FormField, FormFieldType } from './types';
 import { capitalizeFirstLetter, compose } from '../utils/utils';
 
-type DynamicFormConfig = {
+type DynamicFormParserConfig = {
   filename: string;
 };
 
-export class DynamicForm {
+export class DynamicFormParser {
   models: Record<string, FormDefinition> = {};
 
   enums: Record<string, string[]> = {};
 
-  config: DynamicFormConfig;
+  config: DynamicFormParserConfig;
 
-  constructor(config: DynamicFormConfig = { filename: './schema.ts' }) {
+  constructor(config: DynamicFormParserConfig = { filename: './schema.ts' }) {
     this.config = config;
   }
 
@@ -165,6 +165,41 @@ export class DynamicForm {
     this.enums[enumName] = enumValues;
   }
 
+  fromClass<C extends new (...args: any[]) => any>(constructor: C) {
+    const instance = new constructor();
+    const properties = Object.keys(instance);
+
+    const form: Record<string, FormField> = properties.reduce(
+      (acc, property) => {
+        const value = instance[property];
+        let formField: FormField;
+
+        if (typeof value === 'string') {
+          formField = { type: 'string' };
+        } else if (typeof value === 'number') {
+          formField = { type: 'number' };
+        } else if (typeof value === 'boolean') {
+          formField = { type: 'boolean' };
+        } else if (Array.isArray(value)) {
+          const elementType = typeof value[0];
+          const ref =
+            elementType === 'object' ? value[0].constructor.name : elementType;
+          formField = { type: 'array', ref };
+        } else if (typeof value === 'object') {
+          formField = { type: 'object', ref: value.constructor.name };
+        } else {
+          formField = { type: 'unknown' };
+        }
+
+        acc[property] = formField;
+        return acc;
+      },
+      {} as Record<string, FormField>
+    );
+
+    this.models[constructor.name] = form;
+  }
+
   async parse() {
     const res = await swc.parseFile(this.config.filename, {
       // @todo: Add into config
@@ -190,6 +225,13 @@ export class DynamicForm {
       this.typeDeclarationToForm(typeDeclaration);
     });
 
+    return {
+      models: this.models,
+      enums: this.enums,
+    };
+  }
+
+  getFormSchema() {
     return {
       models: this.models,
       enums: this.enums,

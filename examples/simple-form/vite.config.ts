@@ -2,11 +2,11 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import path from 'path';
 
-import { generateFormSchemaPlugin } from '../../packages/plugins/vite-plugin-generate-form-schema';
+import { generateFormSchemaVitePlugin } from '../../packages/plugins/generate-form-schema-vite-plugin';
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  plugins: [react(), generateFormSchemaPlugin()],
+  plugins: [react(), generateFormSchemaVitePlugin()],
   resolve: {
     alias: {
       '~renderers': path.resolve(__dirname, '../../packages/renderers'),

@@ -30,3 +30,16 @@ type User = {
   phones: { num: string; type: 'home' | 'work' }[];
   phone: Phone;
 };
+
+// Alternatively, you can use the class syntax
+class PhoneForm {
+  num: string = '';
+  type: 'home' | 'work' = 'home';
+}
+
+class UserForm {
+  firstname: string = '';
+  lastname: string = '';
+  age: number = 0;
+  phone: PhoneForm = new PhoneForm();
+}
