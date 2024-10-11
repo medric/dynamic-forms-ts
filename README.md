@@ -16,7 +16,7 @@
 ## Directory Structure
 
 ```bash
-ts-dynamic-forms/
+dynamic-forms-ts/
 ├── packages/
 │   ├── core/            # Core logic for parsing and generating form schemas
 │   ├── renderers/       # React form components for rendering schemas
@@ -31,8 +31,8 @@ ts-dynamic-forms/
 
 1. Clone the repository:
     ```bash
-    git clone https://github.com/medric/ts-dynamic-forms
-    cd ts-dynamic-forms
+    git clone https://github.com/medric/dynamic-forms-ts
+    cd dynamic-forms-ts
     ```
 
 2. Install the dependencies:
@@ -96,7 +96,7 @@ You can generate form schemas using two approaches:
 You can pre-generate the schema at build time or parse it dynamically on the server side, depending on your use case.
 
 ```ts
-import { DynamicFormParser } from 'ts-dynamic-forms';
+import { DynamicFormParser } from 'dynamic-forms-ts';
 
 const parser = new DynamicFormParser({ filename: 'schema.ts' });
 const formSchema = parser.parse();
@@ -109,7 +109,7 @@ If you're using Vite, the provided `generateFormSchemaVitePlugin` can help autom
 ```ts
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
-import { generateFormSchemaVitePlugin } from 'ts-dynamic-forms';
+import { generateFormSchemaVitePlugin } from 'dynamic-forms-ts';
 
 export default defineConfig({
   plugins: [react(), generateFormSchemaVitePlugin()],
@@ -149,7 +149,7 @@ Once you have the schema, you can use the `DynamicForm` component to generate th
 
 ```tsx
 import React from 'react';
-import { DynamicForm } from 'ts-dynamic-forms';
+import { DynamicForm } from 'dynamic-forms-ts'
 
 const UserForm = () => (
   <DynamicForm
