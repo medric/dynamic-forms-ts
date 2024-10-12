@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import {
   useForm,
   SubmitHandler,
@@ -6,13 +6,18 @@ import {
   Path,
   UseFormRegister,
   FormState,
+  useFormContext,
+  FormProvider,
 } from 'react-hook-form';
 import { nanoid } from 'nanoid';
 import classNames from 'classnames';
-import { FormDefinition, FormField, FormSchema } from '~core/types';
+import { FormField, FormSchema, InlineFormRef } from '~core/types';
+import { emailPattern } from '~utils/validation';
+
+const DEFAULT_INPUT_ERROR_MESSAGE = 'Please enter a valid value';
 
 interface SchemaRendererProps {
-  model: string;
+  model: string | InlineFormRef;
   formSchema: FormSchema;
   level: number;
   parentField: string;
@@ -35,7 +40,7 @@ const SchemaRenderer = React.memo(function SchemaRenderer({
 }: SchemaRendererProps) {
   return (
     <div>
-      <h3>{parentField}</h3>
+      <h4 className="inner-form-title">{parentField}</h4>
       <DynamicForm
         model={model}
         formSchema={formSchema}
@@ -77,7 +82,7 @@ const EnumRenderer = React.memo(function EnumRenderer<
 });
 
 interface DynamicFormProps<IFormInput extends FieldValues> {
-  model: keyof FormSchema['models'];
+  model: keyof FormSchema['models'] | InlineFormRef;
   formSchema: FormSchema;
   level?: number;
   parentKey?: string;
@@ -104,34 +109,27 @@ export function DynamicForm<IFormInput extends FieldValues>({
   renderLabel,
   renderInput,
 }: DynamicFormProps<IFormInput>) {
-  const { register, handleSubmit, formState } = useForm<IFormInput>();
+  const formContext = useFormContext();
+  // If formContext is provided, use it, otherwise create a new form - this is because forms are recursive for now
+  const formMethods = formContext || useForm<IFormInput>();
+
+  const { register, handleSubmit, formState } = formMethods;
 
   const { errors } = formState;
 
-  const formId = `dynamic-form-${nanoid()}`;
+  const formId = useMemo(() => `dynamic-form-${nanoid()}`, []);
 
   const renderFormElement = (key: string, value: FormField) => {
     const field = key as Path<IFormInput>;
 
-    if (value.type === 'object' && typeof value.ref === 'string') {
+    if (
+      (value.type === 'object' || value.type === 'array') &&
+      Boolean(value.ref)
+    ) {
       return (
         <SchemaRenderer
           key={field}
-          model={value.ref}
-          formSchema={formSchema}
-          level={level + 1}
-          parentField={field}
-          renderLabel={renderLabel}
-          renderInput={renderInput}
-        />
-      );
-    }
-
-    if (value.type === 'array' && typeof value.ref === 'string') {
-      return (
-        <SchemaRenderer
-          key={field}
-          model={value.ref}
+          model={value.ref as string | InlineFormRef}
           formSchema={formSchema}
           level={level + 1}
           parentField={field}
@@ -154,9 +152,17 @@ export function DynamicForm<IFormInput extends FieldValues>({
       );
     }
 
-    const formField = formSchema.models[model][key];
+    if (value.type === 'email') {
+      value.validators = {
+        ...value.validators,
+        pattern: emailPattern,
+        message: 'Please enter a valid email address',
+      };
+    }
 
-    const { message, pattern, ...validators } = formField.validators ?? {};
+    const formField = formSchema.models?.[model as string]?.[key] || value;
+
+    const { message, pattern, ...validators } = formField?.validators ?? {};
 
     const filteredValidators = Object.entries(validators).reduce(
       (acc, [validator, value]) => {
@@ -170,6 +176,7 @@ export function DynamicForm<IFormInput extends FieldValues>({
 
     // Render regular inputs
     const inputLabelText = formField.label ?? field;
+
     return (
       <div key={field}>
         {renderLabel ? (
@@ -195,22 +202,36 @@ export function DynamicForm<IFormInput extends FieldValues>({
                     typeof pattern === 'string' &&
                     !RegExp(pattern).test(value)
                   ) {
-                    return (message as string) ?? 'This field is invalid';
+                    return (message as string) ?? DEFAULT_INPUT_ERROR_MESSAGE;
                   }
                   return true;
                 },
               })}
+              className={errors[field] ? 'error' : 'border border-purple-800'}
             />
-            {errors?.[field]?.message && <p>{String(errors[field]?.message) ?? ''}</p>}
+            {typeof errors?.[field]?.message === 'string' && (
+              <p className="form-error">
+                {errors[field]?.message || DEFAULT_INPUT_ERROR_MESSAGE}
+              </p>
+            )}
           </>
         )}
       </div>
     );
   };
 
-  const form = formSchema.models[model];
+  let form = null;
+
+  if (typeof model === 'string') {
+    form = formSchema.models[model];
+  } else {
+    form = model;
+  }
 
   const renderForm = () => {
+    if (!form) {
+      return null;
+    }
     return Object.entries(form).map(([key, value]) =>
       renderFormElement(key, value)
     );
@@ -220,15 +241,21 @@ export function DynamicForm<IFormInput extends FieldValues>({
     return <div>{renderForm()}</div>;
   }
 
+  const hasFields = typeof form !== 'undefined' && Object.keys(form).length > 0;
+
   return (
-    <form
-      id={formId}
-      className={classNames('dynamic-form', className)}
-      onSubmit={handleSubmit(onSubmit ?? (() => {}))}
-    >
-      {title && <h2>{title}</h2>}
-      {renderForm()}
-      <input type="submit" />
-    </form>
+    <FormProvider {...formMethods}>
+      <form
+        id={formId}
+        className={classNames('dynamic-form', className)}
+        onSubmit={handleSubmit(
+          (onSubmit as SubmitHandler<FieldValues>) ?? (() => {})
+        )}
+      >
+        {title && <h2>{title}</h2>}
+        {renderForm()}
+        {hasFields && <input type="submit" value="Submit" />}
+      </form>
+    </FormProvider>
   );
 }

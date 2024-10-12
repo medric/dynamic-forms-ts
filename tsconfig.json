@@ -1,13 +1,14 @@
 {
   "compilerOptions": {
     "baseUrl": ".",
-    "target": "es2016",
+    "target": "ESNext",
     "jsx": "react-jsx",
     "module": "commonjs",
     "paths": {
       "~core/*": ["packages/core/*"],
       "~plugins/*": ["packages/plugins/*"],
-      "~renderers/*": ["packages/renderers/*"]
+      "~renderers/*": ["packages/renderers/*"],
+      "~utils/*": ["packages/utils/*"]
     },
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
@@ -17,5 +18,5 @@
     "declaration": true
   },
   "include": ["packages/**/*"],
-  "exclude": ["node_modules", "dist", "examples"]
+  "exclude": ["node_modules", "dist", "examples", "**/*.spec.ts"]
 }

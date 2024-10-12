@@ -59,16 +59,19 @@ You can also leverage custom field types to handle input validations:
 
 ```ts
 type User = {
-  firstname: FieldString<1, 50, '[a-zA-Z]+$', 'Incorrect name', 'First Name'>;
-  lastname: FieldString<1, 50, '[a-zA-Z]+$', 'Incorrect name', 'Last Name'>;
-  age: FieldNumber<1, 100, 'Incorrect age'>;
-};
+  name: StringField<0, 5, '', 'Please enter a valid name'>;
+  address: StructField<{ 
+    street: StringField<0, 5>,
+    city: StringField<0, 5>,
+  }>;
+  email: EmailField,
+}
 ```
 
 Available field types are:
 
 ```ts
-type FieldString<
+type StringField<
   Min = number,
   Max = number,
   Pattern = string,
@@ -76,14 +79,16 @@ type FieldString<
   Label = string,
 > = string;
 
-type FieldNumber<
+type NumberField<
   Min = number,
   Max = number,
   Message = string,
   Label = string,
 > = number;
 
-type FieldEmail<Message = string, Label = string> = string;
+type EmailField<Message = string, Label = string> = string;
+
+type StructField<Struct, Message = string, Label = string> = Struct;
 ```
 
 The validation rules and field options defined within the generic parameters are parsed and used within the `<DynamicForm />` renderer, utilizing the validation mechanism of React Hook Form.
@@ -96,9 +101,9 @@ You can generate form schemas using two approaches:
 You can pre-generate the schema at build time or parse it dynamically on the server side, depending on your use case.
 
 ```ts
-import { DynamicFormParser } from 'dynamic-forms-ts';
+import { DynamicFormNodeParser } from 'dynamic-forms-ts';
 
-const parser = new DynamicFormParser({ filename: 'schema.ts' });
+const parser = new DynamicFormNodeParser({ filename: 'schema.ts' });
 const formSchema = parser.parse();
 
 // Write the output to a JSON file or serve it dynamically
@@ -134,13 +139,25 @@ class UserForm {
   posts: string[] = [''];
 }
 
-const parser = new DynamicFormParser();
+const parser = new DynamicFormNodeParser();
 
 // Parse form models directly
 parser.fromClass(PhoneForm);
 parser.fromClass(UserForm);
 
 const formSchema = parser.getFormSchema();
+```
+
+#### c. Client-side form schema parsing
+
+```ts
+import { DynamicFormWasmParser } from 'dynamic-forms-ts';
+
+const dynamicFormWasmParser = new DynamicFormWasmParser();
+
+const code = ``;
+
+const formSchema = dynamicFormParser.parse(code);
 ```
 
 ### 3. Create a Dynamic Form

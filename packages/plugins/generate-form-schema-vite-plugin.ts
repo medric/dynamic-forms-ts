@@ -1,7 +1,7 @@
 import { writeFileSync, watch } from 'fs';
 import path from 'path';
 import type { PluginOption, ViteDevServer } from 'vite';
-import { DynamicFormParser } from '../core/dynamic-form-parser';
+import { DynamicFormNodeParser } from '../core/parsers/dynamic-form-node-parser';
 
 const DEFAULT_SCHEMA_FILE_PATH = './dynamic-form-ts-schema.ts';
 const DEFAULT_OUTPUT_FILE_PATH = 'src/dynamic-form-ts-schema.json';
@@ -29,7 +29,7 @@ export function generateFormSchemaVitePlugin(
       const currentDir = process.cwd();
       console.log('Generating form schema...', currentDir);
 
-      const dynamicFormParser = new DynamicFormParser({
+      const dynamicFormParser = new DynamicFormNodeParser({
         filename: schemaFilePath,
       });
 

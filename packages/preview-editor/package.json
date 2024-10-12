@@ -1,5 +1,5 @@
 {
-  "name": "simple-form",
+  "name": "preview-editor",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -7,26 +7,36 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "api": "pm2 start npx --name api-server -- tsx server.ts"
   },
   "dependencies": {
-    "dynamic-forms-ts": "file:../../",
+    "@codemirror/basic-setup": "^0.20.0",
+    "@codemirror/lang-javascript": "^6.2.2",
+    "@swc/wasm-web": "^1.7.35",
+    "@uiw/react-codemirror": "^4.23.5",
+    "autoprefixer": "^10.4.20",
+    "express": "^4.21.1",
+    "lodash.debounce": "^4.0.8",
+    "postcss": "^8.4.47",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"
   },
   "devDependencies": {
     "@eslint/js": "^9.11.1",
-    "@types/react": "^18.3.11",
+    "@types/express": "^5.0.0",
+    "@types/lodash.debounce": "^4.0.9",
+    "@types/react": "^18.3.10",
     "@types/react-dom": "^18.3.0",
     "@vitejs/plugin-react": "^4.3.2",
     "eslint": "^9.11.1",
     "eslint-plugin-react-hooks": "^5.1.0-rc.0",
     "eslint-plugin-react-refresh": "^0.4.12",
     "globals": "^15.9.0",
+    "tailwindcss": "^3.4.13",
     "typescript": "^5.6.3",
     "typescript-eslint": "^8.7.0",
     "vite": "^5.4.8",
-    "vite-plugin-alias": "^0.1.1",
-    "vite-tsconfig-paths": "^5.0.1"
+    "vite-plugin-static-copy": "^2.0.0"
   }
 }
