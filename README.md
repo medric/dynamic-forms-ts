@@ -2,27 +2,27 @@
 
 ## Overview
 
-**Dynamic Forms TS** is a TypeScript-first utility that automates the creation of dynamic, type-safe forms in React. By parsing TypeScript types, this module generates form schemas and builds forms dynamically using [React Hook Form](https://react-hook-form.com/). This tool aims to streamline form development by aligning forms with your TypeScript models and business logic, reducing boilerplate code and enhancing maintainability.
+**Dynamic Forms TS** is a TypeScript-first utility that simplifies the creation of dynamic, type-safe forms in React. It generates form schemas based on TypeScript models and builds forms dynamically using [React Hook Form](https://react-hook-form.com/). By aligning forms with your TypeScript types, it reduces manual form setup, minimizes boilerplate, and enhances code maintainability.
 
-⚠️ **Note:** This module is currently experimental and not intended for production use. It is designed primarily for testing and exploration purposes while evaluating its real-world applicability.
+⚠️ **Note:** This module is experimental and not ready for production use. It is designed for testing and exploration while evaluating its applicability to real-world scenarios.
 
 ## Key Features
-- **TypeScript-Driven**: Automatically generates form schemas based on TypeScript models.
-- **Dynamic Form Generation**: Build dynamic React forms without manual configuration.
-- **Seamless Integration**: Works seamlessly with [React Hook Form](https://react-hook-form.com/).
-- **Type-Safe**: Ensures all form fields are type-checked against your TypeScript definitions.
-- **Customizable and Extensible**: Easily adaptable with full customization options for various use cases.
+
+- **TypeScript-Driven**: Form schemas are automatically generated from your TypeScript models.
+- **Dynamic Form Generation**: Build forms dynamically without manual configuration.
+- **Seamless Integration**: Works natively with [React Hook Form](https://react-hook-form.com/).
+- **Type-Safe**: Ensures all form fields align with your TypeScript definitions.
+- **Customizable and Extensible**: Provides full flexibility for custom use cases and extensions.
 
 ## Directory Structure
 
 ```bash
 dynamic-forms-ts/
 ├── packages/
-│   ├── core/            # Core logic for parsing and generating form schemas
-│   ├── renderers/       # React form components for rendering schemas
+│   ├── core/            # Core logic for schema parsing and generation
+│   ├── renderers/       # React components for rendering forms from schemas
 │   ├── utils/           # Helper utilities and tools
-│   └── plugins/         # Optional plugins for schema generation or form rendering
-├── tests/               # Unit tests for schema parsing and form rendering
+│   └── plugins/         # Optional plugins for schema or form customization
 ├── README.md            # Documentation
 └── package.json         # NPM configuration
 ```
@@ -35,7 +35,7 @@ dynamic-forms-ts/
     cd dynamic-forms-ts
     ```
 
-2. Install the dependencies:
+2. Install dependencies:
     ```bash
     npm install
     ```
@@ -44,7 +44,7 @@ dynamic-forms-ts/
 
 ### 1. Define TypeScript Types
 
-Start by defining your TypeScript model, which will serve as the foundation for generating the form schema.
+Start by defining your TypeScript model. This model will serve as the blueprint for generating the form schema.
 
 ```ts
 type User = {
@@ -55,50 +55,37 @@ type User = {
 };
 ```
 
-You can also leverage custom field types to handle input validations:
+You can also use specialized field types to handle validation rules:
 
 ```ts
 type User = {
-  name: StringField<0, 5, '', 'Please enter a valid name'>;
+  name: StringField<0, 5, '', 'Invalid name'>;
   address: StructField<{ 
     street: StringField<0, 5>,
     city: StringField<0, 5>,
   }>;
-  email: EmailField,
+  email: EmailField;
 }
 ```
 
-Available field types are:
+Available field types include:
 
 ```ts
-type StringField<
-  Min = number,
-  Max = number,
-  Pattern = string,
-  Message = string,
-  Label = string,
-> = string;
-
-type NumberField<
-  Min = number,
-  Max = number,
-  Message = string,
-  Label = string,
-> = number;
-
+type StringField<Min = number, Max = number, Pattern = string, Message = string, Label = string> = string;
+type NumberField<Min = number, Max = number, Message = string, Label = string> = number;
 type EmailField<Message = string, Label = string> = string;
-
 type StructField<Struct, Message = string, Label = string> = Struct;
 ```
 
-The validation rules and field options defined within the generic parameters are parsed and used within the `<DynamicForm />` renderer, utilizing the validation mechanism of React Hook Form.
+Validation rules specified in these field types are used by the `<DynamicForm />` component, taking advantage of React Hook Form's validation system.
 
 ### 2. Generate Form Schema
 
-You can generate form schemas using two approaches:
+There are multiple ways to generate form schemas:
 
 #### a. Build-Time/Server-Side Parsing
-You can pre-generate the schema at build time or parse it dynamically on the server side, depending on your use case.
+
+Generate the schema at build time or server-side depending on your setup.
 
 ```ts
 import { DynamicFormNodeParser } from 'dynamic-forms-ts';
@@ -106,10 +93,10 @@ import { DynamicFormNodeParser } from 'dynamic-forms-ts';
 const parser = new DynamicFormNodeParser({ filename: 'schema.ts' });
 const formSchema = parser.parse();
 
-// Write the output to a JSON file or serve it dynamically
+// You can save this schema to a JSON file or serve it dynamically.
 ```
 
-If you're using Vite, the provided `generateFormSchemaVitePlugin` can help automate schema generation:
+For Vite users, the provided `generateFormSchemaVitePlugin` automates schema generation:
 
 ```ts
 import { defineConfig } from 'vite';
@@ -123,7 +110,7 @@ export default defineConfig({
 
 #### b. Inline Model Parsing
 
-You can also use class-based models to define and parse forms directly in your code:
+You can define and parse forms directly in your code using class-based models:
 
 ```ts
 class PhoneForm {
@@ -141,32 +128,39 @@ class UserForm {
 
 const parser = new DynamicFormNodeParser();
 
-// Parse form models directly
+// Parse models directly from class definitions
 parser.fromClass(PhoneForm);
 parser.fromClass(UserForm);
 
 const formSchema = parser.getFormSchema();
 ```
 
-#### c. Client-side form schema parsing
+#### c. Client-Side Schema Parsing
+
+You can also parse TypeScript code directly in the browser or client-side:
 
 ```ts
 import { DynamicFormWasmParser } from 'dynamic-forms-ts';
 
-const dynamicFormWasmParser = new DynamicFormWasmParser();
+const dynamicFormParser = new DynamicFormWasmParser();
 
-const code = ``;
+const code = `
+type User = {
+  name: string;
+  age: number;
+};
+`;
 
 const formSchema = dynamicFormParser.parse(code);
 ```
 
-### 3. Create a Dynamic Form
+### 3. Render a Dynamic Form
 
-Once you have the schema, you can use the `DynamicForm` component to generate the form UI automatically.
+Once you have the schema, use the `DynamicForm` component to generate the form UI:
 
 ```tsx
 import React from 'react';
-import { DynamicForm } from 'dynamic-forms-ts'
+import { DynamicForm } from 'dynamic-forms-ts';
 
 const UserForm = () => (
   <DynamicForm
@@ -183,11 +177,17 @@ export default UserForm;
 
 ### 4. Customize
 
-You can customize the generated form by adding validation rules, default values, and other configurations directly within the schema to suit specific business needs.
+You can customize the form by adding validation rules, default values, or other configurations directly within the schema to suit your specific needs.
+
+## TODO/Next Steps
+
+- **Support for Classes and Decorators**: Add support for class-based models and decorators as an alternative to using custom field types with generics.
+- **Additional Testing**: Write more comprehensive unit and integration tests to ensure robustness.
+- **Publish to NPM**: Prepare the project for public release and publish the package to [npm](https://www.npmjs.com/).
 
 ## Contributing
 
-Contributions are welcome! If you'd like to contribute, please fork the repository and submit a pull request. For major changes, please open an issue first to discuss your proposal.
+Contributions are welcome! To contribute, fork the repository and submit a pull request. For significant changes, please open an issue to discuss your proposal before starting.
 
 ## License
 
