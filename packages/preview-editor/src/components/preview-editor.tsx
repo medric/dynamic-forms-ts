@@ -59,12 +59,17 @@ export function PreviewEditor() {
 
   const debouncedCompile = useMemo(() => debounce(compile, 500), [compile]);
 
+  // @todo: add support for multiple models & model selection
+  // @todo: display error/warning messages for compilation errors
+  const firstModelKey = Object.keys(formSchema?.models ?? {})[0];
+
   return (
     <>
       <div className="flex flex-row gap-6">
         <div className="flex-1 overflow-hidden">
           <h3>Preview editor</h3>
-          <form id="controls" className="flex flex-row items-center gap-3">
+          {/* @todo: re-instate when models selection is implemented */}
+          {/* <form id="controls" className="flex flex-row items-center gap-3">
             <label htmlFor="liveReload" className="flex items-center">
               <input
                 name="liveReload"
@@ -74,8 +79,8 @@ export function PreviewEditor() {
                 readOnly
               />
             </label>
-            <span className="inline-block">Live reload</span>
-          </form>
+            <span className="inline-block">Live reload</span> 
+          </form> */}
           <CodeMirror
             value={value}
             height="80vh"
@@ -96,7 +101,11 @@ export function PreviewEditor() {
           <h3>Form</h3>
           <div className="border border-slate-400 h-[80vh] mt-2 p-2">
             {formSchema && (
-              <DynamicForm model="User" formSchema={formSchema} title="" />
+              <DynamicForm
+                model={firstModelKey}
+                formSchema={formSchema}
+                title=""
+              />
             )}
           </div>
         </div>

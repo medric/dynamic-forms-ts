@@ -12,11 +12,15 @@
     "clean": "rimraf ./dist",
     "build": "npm run clean && tsc && tsc-alias -p tsconfig.json && cp packages/renderers/styles/*.css dist/"
   },
-  "author": "",
+  "bin": {
+    "dynamic-forms": "./bin/dynamic-forms-ts.js"
+  },
+  "author": "médric",
   "license": "ISC",
   "dependencies": {
     "@swc/wasm-web": "^1.7.35",
     "classnames": "^2.5.1",
+    "commander": "^12.1.0",
     "nanoid": "^5.0.7",
     "pluralize": "^8.0.0",
     "react": "^18.3.1",

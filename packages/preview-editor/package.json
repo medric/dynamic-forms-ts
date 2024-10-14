@@ -7,8 +7,7 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
-    "preview": "vite preview",
-    "api": "pm2 start npx --name api-server -- tsx server.ts"
+    "preview": "vite preview"
   },
   "dependencies": {
     "@codemirror/basic-setup": "^0.20.0",

@@ -179,6 +179,22 @@ export default UserForm;
 
 You can customize the form by adding validation rules, default values, or other configurations directly within the schema to suit your specific needs.
 
+## Test & Build the Package Locally
+
+You can test the module by linking it as a local npm package:
+
+```bash
+npm link
+```
+
+Once linked, you can also test the CLI locally by running:
+
+```bash
+dynamic-forms --help
+```
+
+This will simulate using the package's CLI commands as if it were globally installed.
+
 ## TODO/Next Steps
 
 - **Support for Classes and Decorators**: Add support for class-based models and decorators as an alternative to using custom field types with generics.
