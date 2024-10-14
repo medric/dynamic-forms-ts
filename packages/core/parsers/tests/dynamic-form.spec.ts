@@ -1,6 +1,6 @@
 import * as swc from '@swc/core';
-import { DynamicFormNodeParser } from '~core/parsers/dynamic-form-node-parser';
-import { DynamicFormParser } from '~core/parsers/dynamic-form-parser';
+import { DynamicFormNodeParser } from '../dynamic-form-node-parser';
+import { DynamicFormParser } from '../dynamic-form-parser';
 
 describe('DynamicForm', () => {
   let dynamicFormNodeParser: DynamicFormNodeParser;
