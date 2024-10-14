@@ -191,6 +191,7 @@ Once linked, you can also test the CLI locally by running:
 
 ```bash
 dynamic-forms --help
+dynamic-forms preview-editor
 ```
 
 This will simulate using the package's CLI commands as if it were globally installed.
