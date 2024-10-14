@@ -40,6 +40,13 @@ function runPreviewEditor() {
         }
       });
     });
+
+    // Handle keyboard interrupt from within the spawned process
+    process.on('SIGINT', () => {
+      console.log('Shutting down form editor...');
+      run.kill();
+      process.exit(0);
+    });
   } catch (error) {
     console.error(error);
   }
