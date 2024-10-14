@@ -1,4 +1,8 @@
-import { FieldNumber, FieldString } from '../../packages/core/types';
+import type {
+  NumberField,
+  StringField,
+  StructField,
+} from '../../packages/core/types';
 
 type Post = {
   title: string;
@@ -10,38 +14,36 @@ type Phone = {
   type: 'home' | 'work';
 };
 
-enum UserRole {
+export enum UserRole {
   ADMIN = 'admin',
   USER = 'user',
 }
 
-type User = {
-  firstname: FieldString<1, 50, '[a-zA-Z]+$', 'Incorrect name', 'First Name'>;
-  lastname: FieldString<1, 50, '[a-zA-Z]+$', 'Incorrect name', 'Last Name'>;
-  age: FieldNumber<1, 100, ''>;
-  sex: string;
-  job: string;
-  posts: Post[];
-  address: {
-    street: string;
-    city: string;
-    zip: string;
-  }[];
-  role: UserRole;
-  // Test inline object
-  phones: { num: string; type: 'home' | 'work' }[];
-  phone: Phone;
+export type Address = {
+  street: StringField<1, 50, '', 'Please enter a valid street', 'Street'>;
+  city: StringField<1, 50, '', 'Please enter a valid city', 'City'>;
+  zip: StringField<1, 50, '', 'Please enter a valid zip code', 'Zip'>;
 };
 
-// Alternatively, you can use the class syntax
-class PhoneForm {
-  num: FieldString<1, 50, '', 'Incorrect phone number', 'Phone Number'> = '';
-  type: 'home' | 'work' = 'home';
-}
-
-class UserForm {
-  firstname: string = '';
-  lastname: string = '';
-  age: number = 0;
-  phone: PhoneForm = new PhoneForm();
-}
+export type User = {
+  firstname: StringField<
+    1,
+    50,
+    '[a-zA-Z]+$',
+    'Please enter a correct name',
+    'First Name'
+  >;
+  lastname: StringField<
+    1,
+    50,
+    '[a-zA-Z]+$',
+    'Please enter a correct name',
+    'Last Name'
+  >;
+  age: NumberField<1, 100, 'Please enter a valid age', 'Age'>;
+  sex: StringField<1, 10, '', 'Please enter a valid value', 'Sex'>;
+  job: StringField<1, 10, '', 'Please enter a valid value', 'Job'>;
+  address: Address;
+  role: UserRole;
+  phone: Phone;
+};

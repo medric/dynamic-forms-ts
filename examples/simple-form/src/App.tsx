@@ -1,8 +1,10 @@
 import './App.css';
 
-import formSchema from './dynamic-form-ts-schema.json';
+import { DynamicForm } from 'dynamic-forms-ts';
 
-import { DynamicForm } from '~renderers/dynamic-form';
+import 'dynamic-forms-ts/dist/dynamic-form.css';
+
+import formSchema from './dynamic-form-ts-schema.json';
 
 function App() {
   const handleUserFormSubmit = (data: typeof formSchema.models.User) => {
