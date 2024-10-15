@@ -42,9 +42,9 @@ dynamic-forms-ts/
 
 ## Usage
 
-### 1. Define TypeScript Types
+### 1. Define TypeScript Models
 
-Start by defining your TypeScript model. This model will serve as the blueprint for generating the form schema.
+Start by defining your TypeScript model, which acts as the foundation for generating the form schema.
 
 ```ts
 type User = {
@@ -55,17 +55,19 @@ type User = {
 };
 ```
 
-You can also use specialized field types to handle validation rules:
+You can also use specialized field types to include validation rules directly in the type definition:
 
 ```ts
+type Address = {
+  street: StringField<0, 50, '', 'Invalid street name'>;
+  city: StringField<0, 20, '', 'Invalid city name'>;
+};
+
 type User = {
   name: StringField<0, 5, '', 'Invalid name'>;
-  address: StructField<{ 
-    street: StringField<0, 5>,
-    city: StringField<0, 5>,
-  }>;
+  address: Address;
   email: EmailField;
-}
+};
 ```
 
 Available field types include:
@@ -77,7 +79,42 @@ type EmailField<Message = string, Label = string> = string;
 type StructField<Struct, Message = string, Label = string> = Struct;
 ```
 
-Validation rules specified in these field types are used by the `<DynamicForm />` component, taking advantage of React Hook Form's validation system.
+Alternatively, you can use class-based models with decorators for validations:
+
+```ts
+// Class-based syntax with decorators for validation
+class User {
+  @MinLength(1)
+  @MaxLength(100)
+  @Label('Name')
+  firstName: string;
+
+  @MinLength(1)
+  @MaxLength(100)
+  lastName: string;
+
+  @Min(10)
+  @Max(100)
+  age: number;
+}
+```
+
+Available decorators include:
+
+```ts
+@MinLength(10)
+@MaxLength(10)
+@Min(10)
+@Min(10)
+@Label(10)
+@IsEmail(10)
+@IsURL(10)
+@Pattern('/^[A-Za-z]$/')
+@Message('Please provide a valid value')
+@Required()
+```
+
+Validation rules defined in these types or classes are used by the `<DynamicForm />` component, utilizing React Hook Form's validation system.
 
 ### 2. Generate Form Schema
 
@@ -108,33 +145,6 @@ export default defineConfig({
 });
 ```
 
-#### b. Inline Model Parsing
-
-You can define and parse forms directly in your code using class-based models:
-
-```ts
-class PhoneForm {
-  num: string = '';
-  type: 'home' | 'work' = 'home';
-}
-
-class UserForm {
-  firstname: string = '';
-  lastname: string = '';
-  age: number = 0;
-  phone: PhoneForm = new PhoneForm();
-  posts: string[] = [''];
-}
-
-const parser = new DynamicFormNodeParser();
-
-// Parse models directly from class definitions
-parser.fromClass(PhoneForm);
-parser.fromClass(UserForm);
-
-const formSchema = parser.getFormSchema();
-```
-
 #### c. Client-Side Schema Parsing
 
 You can also parse TypeScript code directly in the browser or client-side:
@@ -151,12 +161,12 @@ type User = {
 };
 `;
 
-const formSchema = dynamicFormParser.parse(code);
+const formSchema = dynamicFormParser.parseInline(code);
 ```
 
 ### 3. Render a Dynamic Form
 
-Once you have the schema, use the `DynamicForm` component to generate the form UI:
+Once you've generated the schema, the `DynamicForm` component will dynamically render your form based on the provided schema:
 
 ```tsx
 import React from 'react';
@@ -164,16 +174,44 @@ import { DynamicForm } from 'dynamic-forms-ts';
 
 const UserForm = () => (
   <DynamicForm
-    model="User"
-    formSchema={formSchema}
-    onSubmit={handleUserFormSubmit}
-    level={0}
-    title="User"
+    model="User"              // Specifies which model from the schema to render
+    formSchema={formSchema}    // The schema generated from your TypeScript model
+    onSubmit={handleUserFormSubmit}  // Handles form submission
+    level={0}                 // Defines the nesting level for complex schemas
+    title="User"              // The title of the form (optional)
   />
 );
 
 export default UserForm;
 ```
+
+To interact with the form's internal state and methods (provided by [React Hook Form](https://react-hook-form.com/)), you can access them through the dynamic form context:
+
+```ts
+import React from 'react';
+import { DynamicForm, dynamicFormContext } from 'dynamic-forms-ts';
+
+const UserForm = () => {
+  const dynamicFormContext = useDynamicForm();
+
+  // Example: clear form errors
+  // dynamicFormContext.formMethods.clearErrors();
+
+  return (
+    <DynamicForm
+      model="User"              // Specifies which model from the schema to render
+      formSchema={formSchema}    // The schema generated from your TypeScript model
+      onSubmit={handleUserFormSubmit}  // Handles form submission
+      level={0}                 // Defines the nesting level for complex schemas
+      title="User"              // The title of the form (optional)
+    />
+  );
+};
+
+export default UserForm;
+```
+
+This allows you to fully manage and manipulate the form dynamically, while still retaining full control over validation, errors, and submission states.
 
 ### 4. Customize
 

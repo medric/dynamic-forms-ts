@@ -41,7 +41,7 @@ function runPreviewEditor() {
       });
     });
 
-    // Handle keyboard interrupt from within the spawned process
+    // Handle keyboard interrupt to kill the child process
     process.on('SIGINT', () => {
       console.log('Shutting down form editor...');
       run.kill();
