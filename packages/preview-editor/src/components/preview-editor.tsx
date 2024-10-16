@@ -1,11 +1,10 @@
-import { useState, useCallback, useEffect, useMemo } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import CodeMirror from '@uiw/react-codemirror';
 import { javascript } from '@codemirror/lang-javascript';
-import debounce from 'lodash.debounce';
-import { autocompletion } from '@codemirror/autocomplete';
+// import debounce from 'lodash.debounce';
 
-import { DynamicForm } from '~renderers/dynamic-form';
-import { FormSchema, serializedTypes } from '~core/types';
+import { DynamicForm, useDynamicForm } from '~renderers/dynamic-form';
+import { FormSchema } from '~core/types';
 import { DynamicFormWasmParser } from '~core/parsers/dynamic-form-wasm-parser';
 
 import '~renderers/styles/dynamic-form.css';
@@ -16,9 +15,12 @@ const parser = new DynamicFormWasmParser();
 
 export function PreviewEditor() {
   const [initialized, setInitialized] = useState(false);
-  const [liveReload, setLiveReload] = useState(false);
-  const [value, setValue] = useState(serializedTypes);
+  const [liveReload, _setLiveReload] = useState(false);
+  const [value, setValue] = useState('');
   const [formSchema, setFormSchema] = useState<FormSchema | null>(null);
+  const [selectedModel, setSelectedModel] = useState<string | null>(null);
+
+  const dynamicFormContext = useDynamicForm();
 
   const onChange = useCallback((val: string) => {
     setValue(val);
@@ -36,19 +38,18 @@ export function PreviewEditor() {
     importAndRunSwcOnMount();
   }, []);
 
-  useEffect(() => {
-    if (liveReload) {
-      console.log('Live reload enabled');
-      debouncedCompile();
-    }
-  }, [value, liveReload]);
+  // useEffect(() => {
+  //   if (liveReload) {
+  //     debouncedCompile();
+  //   }
+  // }, [value, liveReload]);
 
   function compile() {
     if (!initialized) {
       return;
     }
     parser
-      .parse(value)
+      .parseInline(value)
       .then((schema) => {
         setFormSchema(schema);
       })
@@ -57,19 +58,18 @@ export function PreviewEditor() {
       });
   }
 
-  const debouncedCompile = useMemo(() => debounce(compile, 500), [compile]);
+  // const debouncedCompile = useMemo(() => debounce(compile, 500), [compile]);
 
-  // @todo: add support for multiple models & model selection
+  const hasModels = Object.keys(formSchema?.models ?? {}).length > 0;
+  const modelKey = selectedModel ?? Object.keys(formSchema?.models ?? {})[0];
+
   // @todo: display error/warning messages for compilation errors
-  const firstModelKey = Object.keys(formSchema?.models ?? {})[0];
-
   return (
-    <>
-      <div className="flex flex-row gap-6">
-        <div className="flex-1 overflow-hidden">
-          <h3>Preview editor</h3>
-          {/* @todo: re-instate when models selection is implemented */}
-          {/* <form id="controls" className="flex flex-row items-center gap-3">
+    <div className="flex flex-row gap-6">
+      <div className="flex-1 overflow-hidden flex flex-col gap-3">
+        <h3>Preview editor</h3>
+        {/* @todo: re-instate when models selection is implemented */}
+        {/* <form id="controls" className="flex flex-row items-center gap-3">
             <label htmlFor="liveReload" className="flex items-center">
               <input
                 name="liveReload"
@@ -81,35 +81,59 @@ export function PreviewEditor() {
             </label>
             <span className="inline-block">Live reload</span> 
           </form> */}
-          <CodeMirror
-            value={value}
-            height="80vh"
-            width=""
-            extensions={[javascript({ typescript: true }), autocompletion()]}
-            onChange={onChange}
-            style={{
-              textAlign: 'left',
-            }}
-          />
-          {!liveReload && (
-            <button className="m-2" onClick={compile}>
-              Compile
-            </button>
+        <CodeMirror
+          value={value}
+          height="80vh"
+          extensions={[
+            javascript({ typescript: true }), // Enable TypeScript support
+          ]}
+          onChange={onChange}
+          style={{
+            textAlign: 'left',
+          }}
+        />
+        {!liveReload && (
+          <button
+            className="m-2"
+            onClick={compile}
+            disabled={!initialized}
+            data-testid="compile-button"
+          >
+            Compile
+          </button>
+        )}
+      </div>
+      <div className="flex-1 flex flex-col gap-3">
+        <h3>Form preview</h3>
+        <div className="border border-slate-400 h-[80vh] mt-2 p-2 overflow-scroll">
+          {formSchema && (
+            <DynamicForm model={modelKey} formSchema={formSchema} title="" />
           )}
         </div>
-        <div className="flex-1">
-          <h3>Form</h3>
-          <div className="border border-slate-400 h-[80vh] mt-2 p-2">
-            {formSchema && (
-              <DynamicForm
-                model={firstModelKey}
-                formSchema={formSchema}
-                title=""
-              />
-            )}
-          </div>
-        </div>
+
+        {hasModels && (
+          <>
+            <span className="text-sm">Models</span>
+            <div
+              className="border border-slate-400 rounded-md"
+              data-testid="models"
+            >
+              {Object.keys(formSchema?.models ?? {}).map((modelKey) => (
+                <button
+                  key={modelKey}
+                  className="m-2"
+                  onClick={() => {
+                    dynamicFormContext.formMethods.clearErrors?.();
+                    setSelectedModel(modelKey);
+                  }}
+                >
+                  {modelKey}
+                </button>
+              ))}
+            </div>
+          </>
+        )}
       </div>
-    </>
+    </div>
   );
 }

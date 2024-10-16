@@ -1,4 +1,10 @@
-import React, { useMemo } from 'react';
+import React, {
+  useMemo,
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+} from 'react';
 import {
   useForm,
   SubmitHandler,
@@ -8,6 +14,7 @@ import {
   FormState,
   useFormContext,
   FormProvider,
+  UseFormReturn,
 } from 'react-hook-form';
 import { nanoid } from 'nanoid';
 import classNames from 'classnames';
@@ -15,6 +22,52 @@ import { FormField, FormSchema, InlineFormRef } from '~core/types';
 import { emailPattern } from '~utils/validation';
 
 const DEFAULT_INPUT_ERROR_MESSAGE = 'Please enter a valid value';
+
+type DynamicFormContextType = {
+  formMethods: Partial<UseFormReturn<FieldValues>>;
+  setFormMethods: React.Dispatch<
+    React.SetStateAction<Partial<UseFormReturn<FieldValues>>>
+  >;
+};
+
+const defaultDynamicFormContextValue = {
+  formMethods: {} as UseFormReturn<FieldValues>,
+  setFormMethods: () => {},
+};
+
+export const DynamicFormContext = createContext<DynamicFormContextType>(
+  defaultDynamicFormContextValue
+);
+
+export const useDynamicForm = () => {
+  const context = useContext(DynamicFormContext);
+  if (context === undefined) {
+    throw new Error('useDynamicForm must be used within a DynamicFormProvider');
+  }
+  return context;
+};
+
+interface DynamicFormProviderProps {
+  children: React.ReactNode;
+}
+
+export const DynamicFormProvider: React.FC<DynamicFormProviderProps> = ({
+  children,
+}) => {
+  const [formMethods, setFormMethods] = useState(
+    {} as Partial<UseFormReturn<FieldValues>>
+  );
+  return (
+    <DynamicFormContext.Provider
+      value={{
+        formMethods,
+        setFormMethods,
+      }}
+    >
+      {children}
+    </DynamicFormContext.Provider>
+  );
+};
 
 interface SchemaRendererProps {
   model: string | InlineFormRef;
@@ -113,9 +166,17 @@ export function DynamicForm<IFormInput extends FieldValues>({
   // If formContext is provided, use it, otherwise create a new form - this is because forms are recursive for now
   const formMethods = formContext || useForm<IFormInput>();
 
-  const { register, handleSubmit, formState } = formMethods;
+  const { register, handleSubmit, formState, clearErrors } = formMethods;
+
+  const dynamicFormContext = useDynamicForm();
 
   const { errors } = formState;
+
+  useEffect(() => {
+    dynamicFormContext.setFormMethods({
+      clearErrors,
+    });
+  }, [clearErrors]);
 
   const formId = useMemo(() => `dynamic-form-${nanoid()}`, []);
 
@@ -162,7 +223,10 @@ export function DynamicForm<IFormInput extends FieldValues>({
 
     const formField = formSchema.models?.[model as string]?.[key] || value;
 
-    const { message, pattern, ...validators } = formField?.validators ?? {};
+    const { pattern, ...validators } = formField?.validators ?? {};
+
+    const message =
+      formField.validators?.message || DEFAULT_INPUT_ERROR_MESSAGE;
 
     const filteredValidators = Object.entries(validators).reduce(
       (acc, [validator, value]) => {
@@ -202,17 +266,15 @@ export function DynamicForm<IFormInput extends FieldValues>({
                     typeof pattern === 'string' &&
                     !RegExp(pattern).test(value)
                   ) {
-                    return (message as string) ?? DEFAULT_INPUT_ERROR_MESSAGE;
+                    return message as string;
                   }
                   return true;
                 },
               })}
-              className={errors[field] ? 'error' : 'border border-purple-800'}
+              className={errors[field] ? 'error' : ''}
             />
-            {typeof errors?.[field]?.message === 'string' && (
-              <p className="form-error">
-                {errors[field]?.message || DEFAULT_INPUT_ERROR_MESSAGE}
-              </p>
+            {errors?.[field] && (
+              <p className="form-error">{errors[field] && message}</p>
             )}
           </>
         )}

@@ -33,7 +33,7 @@ export type FormFieldTypeParsed =
   | never
   | Function;
 
-type ValidatorType =
+export type ValidatorType =
   | 'min'
   | 'max'
   | 'maxLength'
@@ -80,26 +80,3 @@ export type NumberField<
 export type EmailField<Message = string, Label = string> = string;
 
 export type StructField<Struct, Message = string, Label = string> = Struct;
-
-export const serializedTypes: string = `/* Field types you can use in your schema: */
-export type StringField<
-  MinLength = number,
-  MaxLength = number,
-  Pattern = string,
-  Message = string,
-  Label = string,
-> = string;
-
-export type NumberField<
-  Min = number,
-  Max = number,
-  Message = string,
-  Label = string,
-> = number;
-
-export type EmailField<Message = string, Label = string> = string;
-
-export type StructField<Struct, Message = string, Label = string> = Struct;
-/* End of field types */
-
-`;

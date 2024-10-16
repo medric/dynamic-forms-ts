@@ -10,7 +10,7 @@ export default defineConfig({
     viteStaticCopy({
       targets: [
         {
-          src: './node_modules/@swc/wasm-web/*.wasm',
+          src: '../../node_modules/@swc/wasm-web/*.wasm',
           dest: './node_modules/.vite/deps',
         },
       ],

@@ -1,8 +1,13 @@
+import { DynamicFormProvider } from '~renderers/dynamic-form';
 import './App.css';
 import { PreviewEditor } from './components/preview-editor';
 
 function App() {
-  return <PreviewEditor />;
+  return (
+    <DynamicFormProvider>
+      <PreviewEditor />
+    </DynamicFormProvider>
+  );
 }
 
 export default App;

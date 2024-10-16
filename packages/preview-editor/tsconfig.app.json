@@ -17,11 +17,12 @@
     /* Linting */
     "strict": true,
     "noUnusedLocals": true,
-    "noUnusedParameters": true,
+    "noUnusedParameters": false,
     "noFallthroughCasesInSwitch": true,
     "paths": {
       "~renderers/*": ["../renderers/*"],
-      "~core/*": ["../core/*"]
+      "~core/*": ["../core/*"],
+      "~utils/*": ["../utils/*"]
     }
   },
   "include": ["src"]
