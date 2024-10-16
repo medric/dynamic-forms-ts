@@ -96,6 +96,20 @@ class User {
   @Min(10)
   @Max(100)
   age: number;
+
+  @IsEmail()
+  email: string;
+
+  @IsUrl()
+  @Label('Website URL')
+  website: string;
+
+  address: Address;
+}
+
+class Address {
+  @Length(10, 50)
+  street: string;
 }
 ```
 
@@ -104,11 +118,12 @@ Available decorators include:
 ```ts
 @MinLength(10)
 @MaxLength(10)
+@Length(0, 10)
 @Min(10)
 @Min(10)
 @Label(10)
 @IsEmail(10)
-@IsURL(10)
+@IsUrl(10)
 @Pattern('/^[A-Za-z]$/')
 @Message('Please provide a valid value')
 @Required()
@@ -233,6 +248,26 @@ dynamic-forms preview-editor
 ```
 
 This will simulate using the package's CLI commands as if it were globally installed.
+
+## Preview editor
+
+The **Preview Editor** allows you to visualize and interact with the dynamically generated forms in real-time. This is particularly useful for testing and prototyping forms before integrating them into your project.
+
+#### How to Use the Preview Editor
+
+1. **Run the Preview Editor:**
+   Use the following command to launch the preview editor in your local development environment:
+   
+   ```bash
+   npx dynamic-forms preview-editor
+   ```
+
+   This will start a local server and open the editor in your default browser.
+
+2. **Add TypeScript Types:**
+   Inside the preview editor, you can input or modify TypeScript type or class definitions, which the library will automatically parse to generate the form. 
+  
+![Preview Editor](assets/preview-editor.png)
 
 ## TODO/Next Steps
 

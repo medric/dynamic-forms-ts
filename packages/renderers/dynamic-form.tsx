@@ -19,9 +19,9 @@ import {
 import { nanoid } from 'nanoid';
 import classNames from 'classnames';
 import { FormField, FormSchema, InlineFormRef } from '~core/types';
-import { emailPattern } from '~utils/validation';
+import { emailPattern, URLPattern } from '~utils/validation';
 
-const DEFAULT_INPUT_ERROR_MESSAGE = 'Please enter a valid value';
+export const DEFAULT_INPUT_ERROR_MESSAGE = 'Please enter a valid value';
 
 type DynamicFormContextType = {
   formMethods: Partial<UseFormReturn<FieldValues>>;
@@ -47,9 +47,38 @@ export const useDynamicForm = () => {
   return context;
 };
 
-interface DynamicFormProviderProps {
+export const applyValidators = (value: FormField) => {
+  let updatedValidators = { ...value.validators };
+
+  switch (value.type) {
+    case 'email':
+      updatedValidators = {
+        ...updatedValidators,
+        pattern: emailPattern,
+        message: 'Please enter a valid email address',
+      };
+      break;
+    case 'url':
+      updatedValidators = {
+        ...updatedValidators,
+        pattern: URLPattern,
+        message: 'Please enter a valid URL',
+      };
+      break;
+    // Add more cases here for other types
+    default:
+      break;
+  }
+
+  return {
+    ...value,
+    validators: updatedValidators,
+  };
+};
+
+type DynamicFormProviderProps = {
   children: React.ReactNode;
-}
+};
 
 export const DynamicFormProvider: React.FC<DynamicFormProviderProps> = ({
   children,
@@ -213,15 +242,9 @@ export function DynamicForm<IFormInput extends FieldValues>({
       );
     }
 
-    if (value.type === 'email') {
-      value.validators = {
-        ...value.validators,
-        pattern: emailPattern,
-        message: 'Please enter a valid email address',
-      };
-    }
-
-    const formField = formSchema.models?.[model as string]?.[key] || value;
+    const formField = applyValidators(
+      formSchema.models?.[model as string]?.[key] || value
+    );
 
     const { pattern, ...validators } = formField?.validators ?? {};
 
@@ -259,6 +282,7 @@ export function DynamicForm<IFormInput extends FieldValues>({
           <>
             <input
               {...register(field, {
+                valueAsNumber: value.type === 'number' ? true : undefined,
                 required: formField.required ? (message as string) : false,
                 ...filteredValidators,
                 validate: (value) => {

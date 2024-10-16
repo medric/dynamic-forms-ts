@@ -19,7 +19,9 @@ export type FormFieldType =
   | 'interface'
   | 'type'
   | 'class'
-  | 'intrinsic';
+  | 'intrinsic'
+  | 'email'
+  | 'url';
 
 export type FormFieldTypeParsed =
   | string

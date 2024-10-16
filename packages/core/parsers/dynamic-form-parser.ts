@@ -398,9 +398,6 @@ export class DynamicFormParser {
     const typeDeclarations = searchWindow.filter(
       (node) => node.type === 'TsTypeAliasDeclaration'
     ) as TsTypeAliasDeclaration[];
-    if (typeDeclarations.length === 0) {
-      console.warn('No type declarations found');
-    }
 
     const classDeclarations = searchWindow.filter(
       (node) => node.type === 'ClassDeclaration'
