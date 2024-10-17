@@ -19,12 +19,13 @@
 ```bash
 dynamic-forms-ts/
 ├── packages/
-│   ├── core/            # Core logic for schema parsing and generation
-│   ├── renderers/       # React components for rendering forms from schemas
-│   ├── utils/           # Helper utilities and tools
-│   └── plugins/         # Optional plugins for schema or form customization
-├── README.md            # Documentation
-└── package.json         # NPM configuration
+│   ├── core/            # Core logic for parsing TypeScript schemas and generating form configurations
+│   ├── renderers/       # React components responsible for rendering dynamic forms based on schemas
+│   ├── utils/           # Utility functions and helpers for form generation and validation
+│   ├── preview-editor/  # A playground environment to preview and interact with forms in the browser
+│   └── plugins/         # Extensions for customizing schema parsing and form generation
+├── README.md            # Project documentation
+└── package.json         # NPM configuration and dependencies
 ```
 
 ## Installation

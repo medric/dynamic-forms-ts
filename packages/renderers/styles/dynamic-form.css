@@ -32,7 +32,6 @@ label {
   color: var(--text-color);
   font-size: 0.9rem;
   font-weight: var(--font-weight);
-  text-transform: capitalize;
 }
 
 input[type="submit"] {
