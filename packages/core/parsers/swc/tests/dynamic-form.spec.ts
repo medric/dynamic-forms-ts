@@ -1,4 +1,5 @@
 import * as swc from '@swc/core';
+import { resolve } from 'path';
 import { DynamicFormNodeParser } from '../dynamic-form-node-parser';
 import { DynamicFormParser } from '../dynamic-form-parser';
 
@@ -6,7 +7,9 @@ describe('DynamicForm', () => {
   let dynamicFormNodeParser: DynamicFormNodeParser;
 
   beforeEach(() => {
-    dynamicFormNodeParser = new DynamicFormNodeParser();
+    dynamicFormNodeParser = new DynamicFormNodeParser({
+      formSchemaTypeDefinitionsFile: resolve(__dirname, './test-schema.ts'),
+    });
   });
 
   describe('tsKeywordTypeToForm', () => {
@@ -179,102 +182,20 @@ describe('DynamicForm', () => {
 
   describe('parse', () => {
     it('should parse the file and return models and enums', async () => {
-      class MockCompiler {
-        parse = jest.fn().mockResolvedValue({});
-
-        parseFile = jest.fn().mockResolvedValue({
-          body: [
-            {
-              type: 'TsEnumDeclaration',
-              id: {
-                type: 'Identifier',
-                value: 'MyEnum',
-                span: { start: 0, end: 0, ctxt: 0 },
-                optional: false,
-              },
-              members: [
-                {
-                  id: {
-                    type: 'Identifier',
-                    value: 'VALUE1',
-                    span: { start: 0, end: 0, ctxt: 0 },
-                    optional: false,
-                  },
-                  type: 'TsEnumMember',
-                  span: { start: 0, end: 0, ctxt: 0 },
-                },
-                {
-                  id: {
-                    type: 'Identifier',
-                    value: 'VALUE2',
-                    span: { start: 0, end: 0, ctxt: 0 },
-                    optional: false,
-                  },
-                  type: 'TsEnumMember',
-                  span: { start: 0, end: 0, ctxt: 0 },
-                },
-              ],
-              declare: false,
-              isConst: false,
-              span: { start: 0, end: 0, ctxt: 0 },
-            },
-            {
-              type: 'TsTypeAliasDeclaration',
-              id: {
-                type: 'Identifier',
-                value: 'MyType',
-                span: { start: 0, end: 0, ctxt: 0 },
-                optional: false,
-              },
-              typeAnnotation: {
-                type: 'TsTypeLiteral',
-                members: [
-                  {
-                    type: 'TsPropertySignature',
-                    key: {
-                      type: 'Identifier',
-                      value: 'property1',
-                      span: { start: 0, end: 0, ctxt: 0 },
-                      optional: false,
-                    },
-                    typeAnnotation: {
-                      type: 'TsTypeAnnotation',
-                      typeAnnotation: {
-                        type: 'TsKeywordType',
-                        kind: 'string',
-                        span: { start: 0, end: 0, ctxt: 0 },
-                      },
-                      span: { start: 0, end: 0, ctxt: 0 },
-                    },
-                    readonly: false,
-                    computed: false,
-                    optional: false,
-                    params: [],
-                    span: { start: 0, end: 0, ctxt: 0 },
-                  },
-                ],
-                span: { start: 0, end: 0, ctxt: 0 },
-              },
-              declare: false,
-              span: { start: 0, end: 0, ctxt: 0 },
-            },
-          ],
-          span: { start: 0, end: 0, ctxt: 0 },
-          interpreter: 'none',
-          type: 'Module',
-        });
-      }
-
-      const mockCompiler = new MockCompiler();
-
-      const mockDynamicFormNodeParser = new DynamicFormParser(
-        {},
-        mockCompiler as unknown as swc.Compiler
-      );
-
-      const result = await mockDynamicFormNodeParser.parse();
+      const result = await dynamicFormNodeParser.parse();
       expect(result).toEqual({
-        models: { MyType: { property1: { type: 'string', required: true } } },
+        models: {
+          MyType: {
+            property1: {
+              type: 'string',
+              required: true,
+              validators: {
+                maxLength: 20,
+                minLength: 10,
+              },
+            },
+          },
+        },
         enums: { MyEnum: ['VALUE1', 'VALUE2'] },
       });
     });

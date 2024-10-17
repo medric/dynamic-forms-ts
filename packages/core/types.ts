@@ -73,3 +73,17 @@ export type DecoratorParserReturnType = {
   rest?: FormFieldPropType;
   type?: FormFieldType;
 } | null;
+
+export {
+  IsEmail,
+  IsUrl,
+  Label,
+  Length,
+  Max,
+  MaxLength,
+  Message,
+  Min,
+  MinLength,
+  Pattern,
+  Required,
+} from './parsers/commons';
