@@ -12,7 +12,10 @@ export {
   MinLength,
   Pattern,
   Required,
-} from './core/parsers/dynamic-form-decorators';
-export { DynamicFormWasmParser } from './core/parsers/dynamic-form-wasm-parser';
-export { DynamicFormNodeParser } from './core/parsers/dynamic-form-node-parser';
+} from './core/parsers/commons';
+export {
+  DynamicFormWasmParser,
+  DynamicFormNodeParser,
+  DynamicFormTsParser,
+} from './core';
 export { DynamicForm } from './renderers/dynamic-form';

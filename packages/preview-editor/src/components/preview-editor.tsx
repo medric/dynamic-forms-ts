@@ -5,7 +5,7 @@ import { javascript } from '@codemirror/lang-javascript';
 
 import { DynamicForm, useDynamicForm } from '~renderers/dynamic-form';
 import { FormSchema } from '~core/types';
-import { DynamicFormWasmParser } from '~core/parsers/dynamic-form-wasm-parser';
+import { DynamicFormWasmParser } from '~core/parsers/swc/dynamic-form-wasm-parser';
 
 import '~renderers/styles/dynamic-form.css';
 
@@ -60,14 +60,31 @@ export function PreviewEditor() {
 
   // const debouncedCompile = useMemo(() => debounce(compile, 500), [compile]);
 
-  const hasModels = Object.keys(formSchema?.models ?? {}).length > 0;
+  // const hasModels = Object.keys(formSchema?.models ?? {}).length > 0;
   const modelKey = selectedModel ?? Object.keys(formSchema?.models ?? {})[0];
 
   // @todo: display error/warning messages for compilation errors
   return (
     <div className="flex flex-row gap-6">
+      <div className="overflow-hidden flex flex-col gap-3 basis-1/5">
+        <h3 className="text-left">Models</h3>
+        <div className="border border-slate-400 h-[80vh] p-2 overflow-scroll">
+          {Object.keys(formSchema?.models ?? {}).map((modelKey) => (
+            <button
+              key={modelKey}
+              className="m-2"
+              onClick={() => {
+                dynamicFormContext.formMethods.clearErrors?.();
+                setSelectedModel(modelKey);
+              }}
+            >
+              {modelKey}
+            </button>
+          ))}
+        </div>
+      </div>
       <div className="flex-1 overflow-hidden flex flex-col gap-3">
-        <h3>Preview editor</h3>
+        <h3 className="text-left">Input</h3>
         {/* @todo: re-instate when models selection is implemented */}
         {/* <form id="controls" className="flex flex-row items-center gap-3">
             <label htmlFor="liveReload" className="flex items-center">
@@ -90,6 +107,7 @@ export function PreviewEditor() {
           onChange={onChange}
           style={{
             textAlign: 'left',
+            border: '1px solid #e5e5e5',
           }}
         />
         {!liveReload && (
@@ -104,35 +122,12 @@ export function PreviewEditor() {
         )}
       </div>
       <div className="flex-1 flex flex-col gap-3">
-        <h3>Form preview</h3>
-        <div className="border border-slate-400 h-[80vh] mt-2 p-2 overflow-scroll">
+        <h3 className="text-left">Form preview</h3>
+        <div className="border border-slate-400 h-[80vh] p-2 overflow-scroll">
           {formSchema && (
             <DynamicForm model={modelKey} formSchema={formSchema} title="" />
           )}
         </div>
-
-        {hasModels && (
-          <>
-            <span className="text-sm">Models</span>
-            <div
-              className="border border-slate-400 rounded-md"
-              data-testid="models"
-            >
-              {Object.keys(formSchema?.models ?? {}).map((modelKey) => (
-                <button
-                  key={modelKey}
-                  className="m-2"
-                  onClick={() => {
-                    dynamicFormContext.formMethods.clearErrors?.();
-                    setSelectedModel(modelKey);
-                  }}
-                >
-                  {modelKey}
-                </button>
-              ))}
-            </div>
-          </>
-        )}
       </div>
     </div>
   );
