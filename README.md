@@ -304,7 +304,7 @@ In the editor, you can modify or add TypeScript type or class definitions. The l
 - **Class-based syntax**: The SWC compiler is used to handle class syntax with decorators.
 - **Type-based syntax**: The TSC compiler is used for parsing TypeScript types.
 
-![Preview Editor](assets/preview-editor.png)
+![Preview Editor](assets/preview-editor-screen.png)
 
 ## TODO/Next Steps
 
