@@ -43,7 +43,7 @@ export type ValidatorType =
   | 'pattern'
   | 'message';
 
-type ValidatorRule = string | number;
+type ValidatorRule = string | number | boolean;
 
 export type InlineFormRef = Record<string, FormFieldType>;
 
@@ -64,21 +64,26 @@ export type FormSchema = {
   enums: Record<string, string[]>;
 };
 
-export type StringField<
-  MinLength = number,
-  MaxLength = number,
-  Pattern = string,
-  Message = string,
-  Label = string,
-> = string;
+export type FormFieldPropType = {
+  [key: string]: string | number | boolean;
+};
 
-export type NumberField<
-  Min = number,
-  Max = number,
-  Message = string,
-  Label = string,
-> = number;
+export type DecoratorParserReturnType = {
+  validators?: FormField['validators'];
+  rest?: FormFieldPropType;
+  type?: FormFieldType;
+} | null;
 
-export type EmailField<Message = string, Label = string> = string;
-
-export type StructField<Struct, Message = string, Label = string> = Struct;
+export {
+  IsEmail,
+  IsUrl,
+  Label,
+  Length,
+  Max,
+  MaxLength,
+  Message,
+  Min,
+  MinLength,
+  Pattern,
+  Required,
+} from './parsers/commons';

@@ -13,9 +13,7 @@ import type {
   Module,
   TsType,
 } from '@swc/core';
-
 import * as WasmCompiler from '@swc/wasm-web';
-
 import pluralize from 'pluralize';
 
 import type {
@@ -25,20 +23,22 @@ import type {
   InlineFormRef,
 } from '~core/types';
 import { capitalizeFirstLetter, compose } from '~utils/utils';
-import { parseClassPropertyDecorators } from '~core/parsers/dynamic-form-decorators';
+import {
+  DynamicFormParserConfig,
+  IDynamicFormParser,
+  IWasmCompiler,
+} from '~core/parsers/commons';
 
-export type DynamicFormParserConfig = {
-  filename?: string;
-};
+import { parseClassPropertyDecorators } from './dynamic-form-decorators';
 
 const parserOptions = {
   syntax: 'typescript' as const,
   decorators: true,
+  comments: true,
+  isModule: true,
 };
 
-type IWasmCompiler = typeof WasmCompiler;
-
-export class DynamicFormParser {
+export class DynamicFormParser implements IDynamicFormParser {
   models: Record<string, FormDefinition> = {};
 
   enums: Record<string, string[]> = {};
@@ -48,7 +48,9 @@ export class DynamicFormParser {
   compiler: Compiler | IWasmCompiler;
 
   constructor(
-    config: DynamicFormParserConfig = { filename: './schema.ts' },
+    config: DynamicFormParserConfig = {
+      formSchemaTypeDefinitionsFile: './schema.ts',
+    },
     compiler: Compiler | typeof WasmCompiler
   ) {
     this.compiler = compiler;
@@ -58,12 +60,6 @@ export class DynamicFormParser {
   TsKeywordType = this.tsKeywordTypeToForm.bind(this);
   TsArrayType = this.tsArrayTypeToForm.bind(this);
   TsTypeReference = this.tsTypeReferenceToForm.bind(this);
-
-  // Custom types resolvers
-  StringField = this.tsStringFieldToForm.bind(this);
-  EmailField = this.tsEmailFieldToForm.bind(this);
-  NumberField = this.tsNumberFieldToForm.bind(this);
-  StructField = this.tsStructFieldToForm.bind(this);
 
   extractFieldParams(param: TsType) {
     if (param.type !== 'TsLiteralType') {
@@ -122,68 +118,6 @@ export class DynamicFormParser {
     }
 
     return { type: 'array', ref: formType };
-  }
-
-  tsNumberFieldToForm(type: TsTypeReference): FormField {
-    const params = type.typeParams?.params;
-    if (!params) {
-      return { type: 'number' };
-    }
-    const [min, max, message, label] = type.typeParams?.params?.map(
-      this.extractFieldParams
-    ) as [number, number, string, string];
-
-    return { type: 'number', label, validators: { min, max, message } };
-  }
-
-  tsStringFieldToForm(type: TsTypeReference): FormField {
-    const params = type.typeParams?.params;
-    if (!params) {
-      return { type: 'string' };
-    }
-    const [minLength, maxLength, pattern, message, label] =
-      type.typeParams?.params?.map(this.extractFieldParams) as [
-        number,
-        number,
-        string,
-        string,
-        string,
-      ];
-
-    return {
-      type: 'string',
-      label,
-      validators: { minLength, maxLength, pattern, message },
-    };
-  }
-
-  tsStructFieldToForm(type: TsTypeReference): FormField {
-    const params = type.typeParams?.params;
-    if (!params) {
-      return { type: 'object' };
-    }
-    const [struct, message, label] = type.typeParams?.params?.map((param) => {
-      if (param.type === 'TsTypeLiteral') {
-        return this.tsTypeLiteralToForm(param as TsTypeLiteral);
-      }
-      const paramType = param as TsLiteralType;
-      const literalType = paramType.literal as NumericLiteral | StringLiteral;
-      return literalType.value;
-    }) as [InlineFormRef, string, string];
-
-    return { type: 'object', ref: struct, label, validators: { message } };
-  }
-
-  tsEmailFieldToForm(type: TsTypeReference): FormField {
-    const params = type.typeParams?.params;
-    if (!params) {
-      return { type: 'email' };
-    }
-    const [message, label] = type.typeParams?.params?.map(
-      this.extractFieldParams
-    ) as [string, string];
-
-    return { type: 'email', label, validators: { message } };
   }
 
   tsTypeReferenceToForm(type: TsTypeReference): FormField {
@@ -340,12 +274,12 @@ export class DynamicFormParser {
     );
   }
 
-  isNodeCompiler() {
+  isServerSideCompiler() {
     return 'parseFile' in this.compiler;
   }
 
   async parseInline(inlineCode: string) {
-    const res = this.isNodeCompiler()
+    const res = this.isServerSideCompiler()
       ? await (this.compiler as Compiler).parse(inlineCode, parserOptions)
       : await (this.compiler as IWasmCompiler).parse(inlineCode, parserOptions);
 
@@ -353,21 +287,21 @@ export class DynamicFormParser {
   }
 
   async parse() {
-    if (!this.isNodeCompiler()) {
+    if (!this.isServerSideCompiler()) {
       return;
     }
 
-    const res = await (this.compiler as Compiler).parseFile(
-      this.config.filename!,
+    const ast = await (this.compiler as Compiler).parseFile(
+      this.config.formSchemaTypeDefinitionsFile!,
       parserOptions
     );
 
-    return this.parseModule(res);
+    return this.parseModule(ast);
   }
 
-  async parseModule(module: Module | WasmCompiler.Module) {
+  async parseModule(ast: Module | WasmCompiler.Module) {
     // Grab all types within export declarations
-    const exportDeclarations = module.body
+    const exportDeclarations = ast.body
       .filter((node) => node.type === 'ExportDeclaration')
       .map((node) => {
         if (node.type === 'ExportDeclaration' && node.declaration) {
@@ -380,7 +314,7 @@ export class DynamicFormParser {
           node !== null
       );
 
-    let enums = module.body.filter(
+    let enums = ast.body.filter(
       (node) => node.type === 'TsEnumDeclaration'
     ) as TsEnumDeclaration[];
 
@@ -393,19 +327,13 @@ export class DynamicFormParser {
 
     enums.forEach(this.parseEnum.bind(this));
 
-    const searchWindow = [...exportDeclarations, ...module.body];
-
-    const typeDeclarations = searchWindow.filter(
-      (node) => node.type === 'TsTypeAliasDeclaration'
-    ) as TsTypeAliasDeclaration[];
+    const searchWindow = [...exportDeclarations, ...ast.body];
 
     const classDeclarations = searchWindow.filter(
       (node) => node.type === 'ClassDeclaration'
     ) as ClassDeclaration[];
 
     classDeclarations.forEach(this.classDeclarationToForm.bind(this));
-
-    typeDeclarations.forEach(this.typeDeclarationToForm.bind(this));
 
     return {
       models: this.models,

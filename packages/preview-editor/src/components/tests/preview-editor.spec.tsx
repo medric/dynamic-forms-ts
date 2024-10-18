@@ -1,10 +1,4 @@
-import {
-  render,
-  screen,
-  fireEvent,
-  waitFor,
-  RenderOptions,
-} from '@testing-library/react';
+import { render, screen, waitFor, RenderOptions } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { DynamicFormContext } from '~renderers/dynamic-form';
 
@@ -42,7 +36,7 @@ jest.mock('@swc/wasm-web', () => ({
   default: jest.fn().mockResolvedValue(true),
 }));
 
-jest.mock('~core/parsers/dynamic-form-wasm-parser', () => ({
+jest.mock('~core/parsers/swc/dynamic-form-wasm-parser', () => ({
   DynamicFormWasmParser: jest.fn().mockImplementation(() => ({
     parseInline: jest.fn().mockResolvedValue({ models: { testModel: {} } }),
   })),
@@ -51,8 +45,11 @@ jest.mock('~core/parsers/dynamic-form-wasm-parser', () => ({
 describe('<PreviewEditor />', () => {
   it('renders without crashing', async () => {
     customRender(<PreviewEditor />);
-    expect(screen.getByText('Preview editor')).toBeInTheDocument();
-    expect(screen.getByText('Form preview')).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByText('Input')).toBeInTheDocument();
+      expect(screen.getByText('Models')).toBeInTheDocument();
+      expect(screen.getByText('Form preview')).toBeInTheDocument();
+    });
   });
 
   it('compiles code on button click', async () => {

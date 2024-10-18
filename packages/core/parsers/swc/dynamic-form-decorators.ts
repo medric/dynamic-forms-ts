@@ -5,69 +5,20 @@ import {
   BooleanLiteral,
   CallExpression,
 } from '@swc/core';
-import { FormField, FormFieldType, ValidatorType } from '../types';
+import {
+  DecoratorParserReturnType,
+  FormField,
+  FormFieldPropType,
+  FormFieldType,
+  ValidatorType,
+} from '~core/types';
 
-export function MinLength(min: number) {}
-
-export function MaxLength(max: number) {}
-
-export function Length(min: number, max: number) {}
-
-export function Required() {}
-
-export function Min(min: number) {}
-
-export function Max(max: number) {}
-
-export function Pattern(pattern: string) {}
-
-export function IsEmail() {}
-
-export function IsUrl() {}
-
-export function Label(label: string) {}
-
-export function Message(message: string) {}
-
-const validationDecorators = {
-  Min,
-  Max,
-  MinLength,
-  MaxLength,
-  Length,
-  Pattern,
-  Message,
-};
-
-const validationDecoratorsToValidatorTypes = {
-  Min: 'min',
-  Max: 'max',
-  MinLength: 'minLength',
-  MaxLength: 'maxLength',
-  Length: 'length',
-  Pattern: 'pattern',
-  Message: 'message',
-};
-
-const propertyTypeDecoratorsToFormFieldTypes = {
-  IsEmail: 'email',
-  IsUrl: 'url',
-};
-
-const formFieldDecoratorsToFormFieldProps = {
-  Required: 'required',
-  Label: 'label',
-};
-
-type FormFieldPropType = {
-  [key: string]: string | number | boolean;
-};
-
-type DecoratorParserReturnType = {
-  validators?: FormField['validators'];
-  rest?: FormFieldPropType;
-  type?: FormFieldType;
-} | null;
+import {
+  formFieldDecoratorsToFormFieldProps,
+  propertyTypeDecoratorsToFormFieldTypes,
+  validationDecorators,
+  validationDecoratorsToValidatorTypes,
+} from '~core/parsers/commons';
 
 const parseSingleParamDecorator = (
   callExpression: CallExpression
