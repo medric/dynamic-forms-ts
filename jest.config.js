@@ -17,20 +17,7 @@ module.exports = {
 
     ...pathsToModuleNameMapper(compilerOptions.paths, { prefix: '<rootDir>/' }),
   },
-  // projects: [
-  //   // Node.js environment (for server-side tests)
-  //   {
-  //     displayName: 'node',
-  //     testEnvironment: 'node',
-  //     testMatch: ['**/*.spec.ts'],
-  //   },
-  //   // JSDOM environment (for React and DOM-related tests)
-  //   {
-  //     displayName: 'dom',
-  //     testEnvironment: 'jsdom',
-  //     testMatch: ['**/*.spec.tsx'],
-  //   },
-  // ],
+  testPathIgnorePatterns: ['/node_modules/', '/dist/'],
   globals: {
     'ts-jest': {
       tsconfig: '<rootDir>/tsconfig.json', // specify the correct tsconfig

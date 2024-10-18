@@ -54,18 +54,21 @@ For now, **class-based models with decorators are preferred**, as they offer mor
 class User {
   @MinLength(1)
   @MaxLength(100)
-  @Label('Name')
+  @Label('Firstname')
   firstName: string;
 
   @MinLength(1)
   @MaxLength(100)
+  @Label('Lastname')
   lastName: string;
 
   @Min(10)
   @Max(100)
+  @Label('Age')
   age: number;
 
   @IsEmail()
+  @Label('Email')
   email: string;
 
   @IsUrl()
@@ -77,6 +80,7 @@ class User {
 
 class Address {
   @Length(10, 50)
+  @Label('Street Name')
   street: string;
 }
 ```
@@ -187,8 +191,11 @@ import { DynamicFormWasmParser } from 'dynamic-forms-ts';
 const dynamicFormParser = new DynamicFormWasmParser();
 
 const code = `
-type User = {
+class User {
+  @Length(1, 50)
   name: string;
+  @Min(0)
+  @Max(100)
   age: number;
 };
 `;
@@ -255,20 +262,47 @@ To test the module, link it as a local npm package:
 npm link
 ```
 
-## Preview Editor
+## CLI Tool
 
-The **Preview Editor** allows you to visualize and interact with the dynamically generated forms in real-time.
+The **Dynamic Forms TS** package comes with a built-in CLI tool that allows you to interact with the library and perform tasks like compiling TypeScript models into form schemas. This can be particularly useful for automating the form generation process or integrating it into your build pipeline.
 
-#### How to Use the Preview Editor
+### How to Use the CLI
 
-1. **Run the Preview Editor:**
-   
-   ```bash
-   npx dynamic-forms preview-editor
-   ```
+Once your package is linked or installed, you can use the CLI tool in your terminal with the following commands:
 
-2. **Add TypeScript Types:**
-   Modify TypeScript type or class definitions in the editor, which the library will automatically parse to generate the form.
+#### 1. Compile TypeScript Models into Form Schemas
+
+To generate a form schema from TypeScript models, use the `compile` command. This will parse your TypeScript file and output a JSON schema for your forms.
+
+```bash
+npx dynamic-forms compile <input> <output>
+```
+
+- `<input>`: The path to your TypeScript file containing the models (e.g., `src/models/user.ts`).
+- `<output>`: The path where the generated form schema (JSON) will be saved.
+
+Example:
+
+```bash
+npx dynamic-forms compile ./src/models/user.ts ./output/form-schema.json
+```
+
+This will take the TypeScript models from `user.ts` and generate a form schema in `form-schema.json`.
+
+### 2. Preview Editor
+
+In addition to the compile functionality, you can use the CLI to launch the **Preview Editor** for real-time form testing.
+
+```bash
+npx dynamic-forms preview-editor
+```
+
+This will start the preview editor locally, allowing you to visualize and interact with dynamically generated forms based on your TypeScript models.
+
+In the editor, you can modify or add TypeScript type or class definitions. The library automatically parses these definitions and generates the corresponding form.
+
+- **Class-based syntax**: The SWC compiler is used to handle class syntax with decorators.
+- **Type-based syntax**: The TSC compiler is used for parsing TypeScript types.
 
 ![Preview Editor](assets/preview-editor.png)
 

@@ -122,7 +122,18 @@ export function parseCommentDecorators(comment: string): Partial<FormField> {
         const decoratorArgs = line
           .substring(openParenIndex + 1, closeParenIndex)
           .split(',')
-          .map((arg) => JSON.parse(arg.trim()));
+          .map((arg) => {
+            // Is json parsable
+            try {
+              return JSON.parse(arg.trim());
+            } catch (e) {
+              const trimmedArg = arg.trim();
+              return (trimmedArg.startsWith('"') && trimmedArg.endsWith('"')) ||
+                (trimmedArg.startsWith("'") && trimmedArg.endsWith("'"))
+                ? trimmedArg.slice(1, -1)
+                : trimmedArg;
+            }
+          });
 
         decorators.push({ name: decoratorName, args: decoratorArgs });
       }

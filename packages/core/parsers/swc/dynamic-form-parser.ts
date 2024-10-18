@@ -335,10 +335,7 @@ export class DynamicFormParser implements IDynamicFormParser {
 
     classDeclarations.forEach(this.classDeclarationToForm.bind(this));
 
-    return {
-      models: this.models,
-      enums: this.enums,
-    };
+    return this.getFormSchema();
   }
 
   getFormSchema() {

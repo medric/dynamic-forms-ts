@@ -9,3 +9,7 @@ export function compose<T>(...fns: Function[]): Function {
         f(g(...args))
   );
 }
+
+export function isBrowser() {
+  return typeof window !== 'undefined';
+}

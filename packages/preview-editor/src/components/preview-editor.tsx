@@ -1,9 +1,10 @@
 import { useState, useCallback, useEffect } from 'react';
 import initSwc from '@swc/wasm-web';
 
-import { DynamicForm } from '~renderers/dynamic-form';
 import { FormSchema } from '~core/types';
 import { DynamicFormWasmParser } from '~core/parsers/swc/dynamic-form-wasm-parser';
+
+import { DynamicFormParser } from '~core/parsers/ts/dynamic-form-parser';
 
 import '~renderers/styles/dynamic-form.css';
 
@@ -11,7 +12,8 @@ import { ModelsList } from './models-list';
 import { FormEditor } from './form-editor';
 import { FormPreview } from './form-preview';
 
-const parser = new DynamicFormWasmParser();
+const swcParser = new DynamicFormWasmParser();
+const tsParser = new DynamicFormParser();
 
 export function PreviewEditor() {
   const [initialized, setInitialized] = useState(false);
@@ -19,6 +21,7 @@ export function PreviewEditor() {
   const [compilationError, setCompilationError] = useState<string | null>(null);
   const [formSchema, setFormSchema] = useState<FormSchema | null>(null);
   const [selectedModel, setSelectedModel] = useState<string | null>(null);
+  const [parser, setParser] = useState<'swc' | 'tsc'>('swc');
 
   const onChange = useCallback((val: string) => {
     setValue(val);
@@ -40,8 +43,13 @@ export function PreviewEditor() {
     if (!initialized) {
       return;
     }
-    parser
-      .parseInline(value)
+
+    const parseInline =
+      parser === 'swc'
+        ? swcParser.parseInline.bind(swcParser)
+        : tsParser.parseInline.bind(tsParser);
+
+    parseInline(value)
       .then((schema) => {
         setFormSchema(schema);
         setCompilationError(null);
@@ -62,11 +70,14 @@ export function PreviewEditor() {
           onChange={onChange}
           initialized={initialized}
           compile={compile}
+          setParser={setParser}
+          parser={parser}
         />
 
         <ModelsList
           models={formSchema?.models ?? {}}
           setSelectedModel={setSelectedModel}
+          selectedModel={selectedModel ?? modelKey}
         />
 
         <FormPreview

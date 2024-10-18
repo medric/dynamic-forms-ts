@@ -20,9 +20,9 @@ export default defineConfig({
   build: {
     target: 'esnext',
     assetsInlineLimit: 0, // Ensure Wasm files are not inlined
-    // rollupOptions: {
-    //   external: ['@swc/wasm'], // Tell Vite/Rollup to treat '@swc/wasm' as an external dependency
-    // },
+    rollupOptions: {
+      external: ['fs'],
+    },
   },
   resolve: {
     alias: {

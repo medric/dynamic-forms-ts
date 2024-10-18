@@ -4,11 +4,13 @@ import { useDynamicForm } from '~renderers/dynamic-form';
 type ModelsListProps = {
   models: Record<string, any>;
   setSelectedModel: (modelKey: string) => void;
+  selectedModel: string | null;
 };
 
 export const ModelsList: FC<ModelsListProps> = ({
   models,
   setSelectedModel,
+  selectedModel,
 }) => {
   const dynamicFormContext = useDynamicForm();
 
@@ -22,7 +24,11 @@ export const ModelsList: FC<ModelsListProps> = ({
         {Object.keys(models ?? {}).map((modelKey) => (
           <button
             key={modelKey}
-            className="m-2"
+            className={`m-2 p-2 rounded ${
+              modelKey === selectedModel
+                ? 'bg-blue-500 text-white'
+                : 'bg-gray-200 text-black'
+            }`}
             onClick={() => {
               dynamicFormContext.formMethods.clearErrors?.();
               setSelectedModel(modelKey);

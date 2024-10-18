@@ -1,0 +1,10 @@
+# .npmignore
+
+packages/core
+packages/plugins
+packages/renderer
+packages/utils
+tests/
+tsconfig.json
+README.md
+.npmignore

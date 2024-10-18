@@ -1,5 +1,3 @@
-import { existsSync, readFileSync } from 'fs';
-import { resolve } from 'path';
 import * as ts from 'typescript';
 
 import pluralize from 'pluralize';
@@ -15,7 +13,7 @@ import {
   IDynamicFormParser,
 } from '~core/parsers/commons';
 import { parseCommentDecorators } from './dynamic-form-decorators';
-import { capitalizeFirstLetter, compose } from '../../../utils/utils';
+import { capitalizeFirstLetter, compose, isBrowser } from '~utils/utils';
 
 export class DynamicFormParser implements IDynamicFormParser {
   models: Record<string, FormDefinition> = {};
@@ -26,29 +24,36 @@ export class DynamicFormParser implements IDynamicFormParser {
 
   compiler: typeof ts;
 
-  ast: ts.SourceFile;
+  ast: ts.SourceFile = {} as ts.SourceFile;
 
-  constructor(
-    config: DynamicFormParserConfig = {
-      formSchemaTypeDefinitionsFile: resolve(__dirname, './schema.ts'),
-    },
-    compiler: typeof ts = ts
-  ) {
-    if (!existsSync(config.formSchemaTypeDefinitionsFile!)) {
-      throw new Error(
-        `File not found: ${config.formSchemaTypeDefinitionsFile}`
+  constructor(config: DynamicFormParserConfig = {}, compiler: typeof ts = ts) {
+    this.config = config;
+
+    this.compiler = compiler;
+
+    if (isBrowser()) {
+      return;
+    }
+
+    console.log('Running in browser environment');
+
+    const readFileSync = require('fs').readFileSync;
+    const resolve = require('path').resolve;
+
+    let { formSchemaTypeDefinitionsFile } = this.config;
+    if (!this.config.formSchemaTypeDefinitionsFile) {
+      formSchemaTypeDefinitionsFile = resolve(
+        process.cwd(),
+        'src/form-schema.ts'
       );
     }
 
-    this.config = config;
-    this.ast = compiler.createSourceFile(
-      config.formSchemaTypeDefinitionsFile!,
-      readFileSync(config.formSchemaTypeDefinitionsFile!).toString(),
-      compiler.ScriptTarget.Latest,
+    this.ast = this.compiler.createSourceFile(
+      this.config.formSchemaTypeDefinitionsFile!,
+      readFileSync(this.config.formSchemaTypeDefinitionsFile!).toString(),
+      this.compiler.ScriptTarget.Latest,
       /*setParentNodes */ true
     );
-
-    this.compiler = compiler;
   }
 
   [ts.SyntaxKind.StringKeyword] = this.tsKeywordTypeToForm.bind(this, 'string');
@@ -234,6 +239,27 @@ export class DynamicFormParser implements IDynamicFormParser {
   }
 
   async parse() {
+    if (isBrowser()) {
+      throw new Error(
+        'parse() method is only available in Node.js environment'
+      );
+    }
+
+    return this.parseModule();
+  }
+
+  async parseInline(inlineCode: string) {
+    this.ast = this.compiler.createSourceFile(
+      'inline.ts',
+      inlineCode,
+      this.compiler.ScriptTarget.Latest,
+      /*setParentNodes */ true
+    );
+
+    return this.parseModule();
+  }
+
+  async parseModule() {
     this.compiler.forEachChild(this.ast, (node) => {
       if (this.compiler.isTypeAliasDeclaration(node)) {
         this.typeDeclarationToForm(node);
@@ -248,6 +274,8 @@ export class DynamicFormParser implements IDynamicFormParser {
         this.parseEnum(node);
       }
     });
+
+    return this.getFormSchema();
   }
 
   getLeadingComments(node: ts.Node) {
