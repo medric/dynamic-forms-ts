@@ -5,7 +5,7 @@ import { DynamicFormNodeParser } from '../core/parsers/swc/dynamic-form-node-par
 
 const DEFAULT_SCHEMA_FILE_PATH = './dynamic-form-ts-schema.ts';
 const DEFAULT_OUTPUT_FORM_JSON_FILE_PATH =
-  './.dynamic-forms-ts/output/form-schema.json';
+  './.ts-dynamic-forms/output/form-schema.json';
 
 export function generateFormSchemaVitePlugin(
   schemaFilePath: string = path.resolve(

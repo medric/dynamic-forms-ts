@@ -7,7 +7,7 @@ import {
   Min,
   MinLength,
   Label,
-} from 'dynamic-forms-ts';
+} from 'ts-dynamic-forms';
 
 class User {
   @MinLength(1)

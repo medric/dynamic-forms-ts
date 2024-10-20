@@ -10,7 +10,7 @@ const DynamicFormNodeParser =
 const { spawn } = require('node:child_process');
 
 program
-  .name('dynamic-forms-ts')
+  .name('ts-dynamic-forms')
   .description('CLI for generating dynamic forms')
   .version('0.1.0');
 
@@ -106,7 +106,7 @@ program
   .argument(
     '[outputFormJsonFilePath]',
     'Output file',
-    './.dynamic-forms-ts/output/form-schema.json'
+    './.ts-dynamic-forms/output/form-schema.json'
   )
   .description('Compile form')
   .action(compileForm);

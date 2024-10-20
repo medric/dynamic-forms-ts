@@ -1,5 +1,5 @@
 {
-  "name": "dynamic-forms-ts",
+  "name": "ts-dynamic-forms",
   "description": "",
   "version": "0.1.0",
   "main": "dist/index.js",
@@ -14,7 +14,7 @@
     "build": "npm run clean && tsc && tsc-alias -p tsconfig.json && cp packages/renderers/styles/*.css dist/"
   },
   "bin": {
-    "dynamic-forms": "./bin/dynamic-forms-ts.js"
+    "dynamic-forms": "./bin/ts-dynamic-forms.js"
   },
   "workspaces": [
     "packages/preview-editor"

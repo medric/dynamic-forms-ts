@@ -2,7 +2,7 @@
 
 ## Overview
 
-**Dynamic Forms TS** is a TypeScript-first utility that simplifies the creation of dynamic, type-safe forms in React. It generates form schemas based on TypeScript models and dynamically builds forms using [React Hook Form](https://react-hook-form.com/). By aligning forms with your TypeScript types, it reduces manual form setup, minimizes boilerplate, and enhances code maintainability.
+**TS Dynamic Forms** is a TypeScript-first utility that simplifies the creation of dynamic, type-safe forms in React. It generates form schemas based on TypeScript models and dynamically builds forms using [React Hook Form](https://react-hook-form.com/). By aligning forms with your TypeScript types, it reduces manual form setup, minimizes boilerplate, and enhances code maintainability.
 
 ⚠️ **Note:** This module is experimental and not ready for production use. It is designed for testing and exploration while evaluating its applicability to real-world scenarios.
 
@@ -17,7 +17,7 @@
 ## Directory Structure
 
 ```bash
-dynamic-forms-ts/
+ts-dynamic-forms/
 ├── packages/
 │   ├── core/            # Core logic for parsing TypeScript schemas and generating form configurations
 │   ├── renderers/       # React components responsible for rendering dynamic forms based on schemas
@@ -32,8 +32,8 @@ dynamic-forms-ts/
 
 1. Clone the repository:
     ```bash
-    git clone https://github.com/medric/dynamic-forms-ts
-    cd dynamic-forms-ts
+    git clone https://github.com/medric/ts-dynamic-forms
+    cd ts-dynamic-forms
     ```
 
 2. Install dependencies:
@@ -152,7 +152,7 @@ There are multiple ways to generate form schemas depending on the syntax you're 
 Under the hood, both `DynamicFormParser` and `DynamicFormWasmParser` use [swc](https://swc.rs/) to parse the TypeScript code. However, these parsers **do not support type declaration syntax** and work exclusively with class-based models.
 
 ```ts
-import { DynamicFormNodeParser } from 'dynamic-forms-ts';
+import { DynamicFormNodeParser } from 'ts-dynamic-forms';
 
 const parser = new DynamicFormNodeParser({ filename: 'schema.ts' });
 const formSchema = parser.parse();
@@ -163,7 +163,7 @@ For Vite users, the provided `generateFormSchemaVitePlugin` automates schema gen
 ```ts
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
-import { generateFormSchemaVitePlugin } from 'dynamic-forms-ts';
+import { generateFormSchemaVitePlugin } from 'ts-dynamic-forms';
 
 export default defineConfig({
   plugins: [react(), generateFormSchemaVitePlugin()],
@@ -175,7 +175,7 @@ export default defineConfig({
 When using `type` syntax, schema generation must be done server-side, typically during build time:
 
 ```ts
-import { DynamicFormTsParser } from 'dynamic-forms-ts';
+import { DynamicFormTsParser } from 'ts-dynamic-forms';
 
 const parser = new DynamicFormTsParser({ filename: './schema.ts' });
 const formSchema = parser.parse();
@@ -186,7 +186,7 @@ const formSchema = parser.parse();
 For client-side parsing of class-based syntax:
 
 ```ts
-import { DynamicFormWasmParser } from 'dynamic-forms-ts';
+import { DynamicFormWasmParser } from 'ts-dynamic-forms';
 
 const dynamicFormParser = new DynamicFormWasmParser();
 
@@ -209,7 +209,7 @@ Once you've generated the schema, the `DynamicForm` component will dynamically r
 
 ```tsx
 import React from 'react';
-import { DynamicForm } from 'dynamic-forms-ts';
+import { DynamicForm } from 'ts-dynamic-forms';
 
 const UserForm = () => (
   <DynamicForm

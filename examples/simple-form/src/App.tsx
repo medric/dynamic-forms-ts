@@ -1,8 +1,8 @@
 import './App.css';
 
-import { DynamicForm } from 'dynamic-forms-ts';
+import { DynamicForm } from 'ts-dynamic-forms';
 
-import 'dynamic-forms-ts/dist/dynamic-form.css';
+import 'ts-dynamic-forms/dist/dynamic-form.css';
 
 import formSchema from './dynamic-form-ts-schema.json';
 
