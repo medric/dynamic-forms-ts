@@ -1,4 +1,4 @@
-<img src="./assets//lib-icon.svg" width=700>
+<img src="./assets/library-icon.svg" width=700>
 
 ## Overview
 
