@@ -1,4 +1,4 @@
-# Dynamic Forms TS
+<img src="./assets//lib-icon.svg" width=700>
 
 ## Overview
 
