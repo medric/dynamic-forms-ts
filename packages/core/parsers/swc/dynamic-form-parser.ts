@@ -1,4 +1,4 @@
-import { resolve } from 'path';
+import type { resolve } from 'path';
 import type {
   Compiler,
   TsKeywordType,
@@ -41,6 +41,8 @@ const parserOptions = {
   isModule: true,
 };
 
+const resolveFileStub = (path: string, file: string) => `${path}/${file}`;
+
 export class DynamicFormParser implements IDynamicFormParser {
   models: Record<string, FormDefinition> = {};
 
@@ -54,16 +56,20 @@ export class DynamicFormParser implements IDynamicFormParser {
 
   depth = 0;
 
+  resolveFile: typeof resolve;
+
   constructor(
     config: DynamicFormParserConfig = {
       formSchemaTypeDefinitionsFile: './schema.ts',
     },
     compiler: Compiler | typeof WasmCompiler,
-    depth: number = 0
+    depth: number = 0,
+    resolveFile: typeof resolve = resolveFileStub
   ) {
     this.compiler = compiler;
     this.config = config;
     this.depth = depth;
+    this.resolveFile = resolveFile;
   }
 
   TsKeywordType = this.tsKeywordTypeToForm.bind(this);
@@ -369,14 +375,15 @@ export class DynamicFormParser implements IDynamicFormParser {
       if (node.type === 'ImportDeclaration') {
         const src = node.source.value;
         // resolve the path
-        const formSchemaDir = resolve(
+        const formSchemaDir = this.resolveFile(
           __dirname,
           this.config.formSchemaTypeDefinitionsFile!
         )
           .split('/')
           .slice(0, -1)
           .join('/');
-        const path = resolve(formSchemaDir, `${src}.ts`);
+
+        const path = this.resolveFile?.(formSchemaDir, `${src}.ts`);
 
         const imports = node.specifiers;
 

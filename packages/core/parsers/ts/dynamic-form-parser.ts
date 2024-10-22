@@ -35,7 +35,7 @@ export class DynamicFormParser implements IDynamicFormParser {
       return;
     }
 
-    console.log('Running in browser environment');
+    console.log('Running in server environment');
 
     const readFileSync = require('fs').readFileSync;
     const resolve = require('path').resolve;
