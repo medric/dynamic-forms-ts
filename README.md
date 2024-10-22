@@ -160,7 +160,7 @@ const formSchema = parser.parse();
 
 #### Vite Integration
 
-For Vite users, the provided `generateFormSchemaVitePlugin` automates schema generation:
+To automate schema generation in your Vite project, use the `generateFormSchemaVitePlugin` provided by `ts-dynamic-forms`. Here's how to integrate it:
 
 ```ts
 import { defineConfig } from 'vite';
@@ -168,14 +168,19 @@ import react from '@vitejs/plugin-react';
 import { generateFormSchemaVitePlugin } from 'ts-dynamic-forms';
 
 export default defineConfig({
-  plugins: [react(), generateFormSchemaVitePlugin(
-    'src/dynamic-form-schema.ts',
-    'src/generated-dynamic-form-schema.json',
-  )],
+  plugins: [
+    react(),
+    generateFormSchemaVitePlugin(
+      'src/dynamic-form-schema.ts',            // Path to your TypeScript form schema
+      'src/generated-dynamic-form-schema.json' // Output path for the generated JSON schema
+    ),
+  ],
 });
 ```
 
-**Troubleshooting: if you encounter the following error related to .node files:
+##### Troubleshooting
+
+If you encounter an error related to `.node` files, like the one below:
 
 ```sh
 [ERROR] No loader is configured for ".node" files: ../../node_modules/@swc/core-darwin-arm64/swc.darwin-arm64.node
@@ -185,11 +190,15 @@ export default defineConfig({
           ╵                        ~~~~~~~~~~~~~~~~~~~~~~~~
 ```
 
-Add the following configuration to your vite.config.ts:
+You can resolve it by adding the following configuration to your `vite.config.ts`:
 
 ```ts
-optimizeDeps: { exclude: ['@swc/wasm', '@swc/core-darwin-arm64'] },
+export default defineConfig({
+  optimizeDeps: { exclude: ['@swc/wasm', '@swc/core-darwin-arm64'] },
+});
 ```
+
+For a full example, check out the `example/simple-form` directory in the repository.
 
 #### DynamicFormTsParser (Server-Side Parsing)
 
