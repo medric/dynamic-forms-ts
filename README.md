@@ -158,6 +158,8 @@ const parser = new DynamicFormNodeParser({ filename: 'schema.ts' });
 const formSchema = parser.parse();
 ```
 
+#### Vite Integration
+
 For Vite users, the provided `generateFormSchemaVitePlugin` automates schema generation:
 
 ```ts
@@ -166,8 +168,27 @@ import react from '@vitejs/plugin-react';
 import { generateFormSchemaVitePlugin } from 'ts-dynamic-forms';
 
 export default defineConfig({
-  plugins: [react(), generateFormSchemaVitePlugin()],
+  plugins: [react(), generateFormSchemaVitePlugin(
+    'src/dynamic-form-schema.ts',
+    'src/generated-dynamic-form-schema.json',
+  )],
 });
+```
+
+**Troubleshooting: if you encounter the following error related to .node files:
+
+```sh
+[ERROR] No loader is configured for ".node" files: ../../node_modules/@swc/core-darwin-arm64/swc.darwin-arm64.node
+
+    ../../node_modules/@swc/core/binding.js:159:23:
+      159 │         return require('@swc/core-darwin-arm64')
+          ╵                        ~~~~~~~~~~~~~~~~~~~~~~~~
+```
+
+Add the following configuration to your vite.config.ts:
+
+```ts
+optimizeDeps: { exclude: ['@swc/wasm', '@swc/core-darwin-arm64'] },
 ```
 
 #### DynamicFormTsParser (Server-Side Parsing)
@@ -209,7 +230,8 @@ Once you've generated the schema, the `DynamicForm` component will dynamically r
 
 ```tsx
 import React from 'react';
-import { DynamicForm } from 'ts-dynamic-forms';
+import { DynamicForm } from 'ts-dynamic-forms/ui';
+// import { DynamicForm } from 'ts-dynamic-forms/dist/ui' // local package (npm link)
 
 const UserForm = () => (
   <DynamicForm

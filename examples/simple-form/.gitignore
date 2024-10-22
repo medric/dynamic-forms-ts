@@ -1,1 +1,2 @@
-.ts-dynamic-forms/
+src/generated-form-schema.json
+src/generated-form-schema.ts

@@ -5,4 +5,5 @@ export {
   DynamicFormNodeParser,
   DynamicFormTsParser,
 } from './core';
-export { DynamicForm } from './renderers/dynamic-form';
+export { DynamicForm } from './ui/dynamic-form';
+export { generateFormSchemaVitePlugin } from './plugins/generate-form-schema-vite-plugin';

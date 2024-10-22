@@ -6,7 +6,7 @@ import { DynamicFormWasmParser } from '~core/parsers/swc/dynamic-form-wasm-parse
 
 import { DynamicFormParser } from '~core/parsers/ts/dynamic-form-parser';
 
-import '~renderers/styles/dynamic-form.css';
+import '~ui/styles/dynamic-form.css';
 
 import { ModelsList } from './models-list';
 import { FormEditor } from './form-editor';

@@ -1,5 +1,5 @@
 import { FC } from 'react';
-import { useDynamicForm } from '~renderers/dynamic-form';
+import { useDynamicForm } from '~ui/dynamic-form';
 
 type ModelsListProps = {
   models: Record<string, any>;

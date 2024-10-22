@@ -26,7 +26,7 @@ export default defineConfig({
   },
   resolve: {
     alias: {
-      '~renderers': path.resolve(__dirname, '../../packages/renderers'),
+      '~ui': path.resolve(__dirname, '../../packages/react'),
       '~core': path.resolve(__dirname, '../../packages/core'),
       '~utils': path.resolve(__dirname, '../../packages/utils'),
     },

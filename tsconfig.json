@@ -8,7 +8,7 @@
       "~utils/*": ["packages/utils/*"],
       "~core/*": ["packages/core/*"],
       "~plugins/*": ["packages/plugins/*"],
-      "~renderers/*": ["packages/renderers/*"]
+      "~ui/*": ["packages/ui/*"]
     },
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,

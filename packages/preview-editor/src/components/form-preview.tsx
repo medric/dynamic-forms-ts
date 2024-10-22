@@ -1,5 +1,5 @@
 import { FC } from 'react';
-import { DynamicForm } from '~renderers/dynamic-form';
+import { DynamicForm } from '~ui/dynamic-form';
 import { FormSchema } from '~core/types';
 
 type FormPreviewProps = {

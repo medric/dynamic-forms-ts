@@ -1,4 +1,4 @@
-import { Compiler } from '@swc/core';
+import type { Compiler } from '@swc/core';
 import * as ts from 'typescript';
 import * as WasmCompiler from '@swc/wasm-web';
 

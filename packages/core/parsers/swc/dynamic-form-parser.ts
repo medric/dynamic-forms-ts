@@ -1,3 +1,4 @@
+import { resolve } from 'path';
 import type {
   Compiler,
   TsKeywordType,
@@ -13,7 +14,7 @@ import type {
   Module,
   TsType,
 } from '@swc/core';
-import * as WasmCompiler from '@swc/wasm-web';
+import type * as WasmCompiler from '@swc/wasm-web';
 import pluralize from 'pluralize';
 
 import type {
@@ -31,6 +32,8 @@ import {
 
 import { parseClassPropertyDecorators } from './dynamic-form-decorators';
 
+const MAX_DEPTH = 10;
+
 const parserOptions = {
   syntax: 'typescript' as const,
   decorators: true,
@@ -47,14 +50,20 @@ export class DynamicFormParser implements IDynamicFormParser {
 
   compiler: Compiler | IWasmCompiler;
 
+  externalRefs: Record<string, string> = {};
+
+  depth = 0;
+
   constructor(
     config: DynamicFormParserConfig = {
       formSchemaTypeDefinitionsFile: './schema.ts',
     },
-    compiler: Compiler | typeof WasmCompiler
+    compiler: Compiler | typeof WasmCompiler,
+    depth: number = 0
   ) {
     this.compiler = compiler;
     this.config = config;
+    this.depth = depth;
   }
 
   TsKeywordType = this.tsKeywordTypeToForm.bind(this);
@@ -287,16 +296,95 @@ export class DynamicFormParser implements IDynamicFormParser {
   }
 
   async parse() {
-    if (!this.isServerSideCompiler()) {
-      return;
-    }
+    try {
+      if (this.depth > MAX_DEPTH) {
+        console.log('Max depth reached');
+        return;
+      }
 
-    const ast = await (this.compiler as Compiler).parseFile(
-      this.config.formSchemaTypeDefinitionsFile!,
-      parserOptions
+      if (!this.isServerSideCompiler()) {
+        return;
+      }
+
+      const ast = await (this.compiler as Compiler).parseFile(
+        this.config.formSchemaTypeDefinitionsFile!,
+        parserOptions
+      );
+
+      return this.parseModule(ast);
+    } catch (e) {
+      console.log('Error parsing file: ', e);
+    }
+  }
+
+  async resolveMissingRefs() {
+    try {
+      // Run sequentially to avoid reparsing the same file
+      for (const [_, model] of Object.entries(this.models)) {
+        const properties = Object.entries(model).filter(([_, value]) =>
+          Boolean(value.ref)
+        );
+
+        for (const [_propertyName, property] of properties) {
+          if (this.models[property.ref as string] !== undefined) {
+            continue;
+          }
+          const path = this.externalRefs[property.ref as string];
+          this.depth++;
+          const parser = new DynamicFormParser(
+            {
+              formSchemaTypeDefinitionsFile: path,
+            },
+            this.compiler,
+            this.depth + 1
+          );
+          const res = await parser.parse();
+
+          if (!res) {
+            continue;
+          }
+
+          const ref = property.ref as string;
+          const model = res.models[ref];
+          const enumValue = res.enums[ref];
+
+          if (model) {
+            this.models[ref] = model;
+          } else if (enumValue) {
+            this.enums[ref] = enumValue;
+          }
+        }
+      }
+    } catch (e) {
+      console.log('Error resolving missing refs: ', e);
+    }
+  }
+
+  parseImports(ast: Module) {
+    const importDeclarations = ast.body.filter(
+      (node) => node.type === 'ImportDeclaration'
     );
 
-    return this.parseModule(ast);
+    importDeclarations.forEach((node) => {
+      if (node.type === 'ImportDeclaration') {
+        const src = node.source.value;
+        // resolve the path
+        const formSchemaDir = resolve(
+          __dirname,
+          this.config.formSchemaTypeDefinitionsFile!
+        )
+          .split('/')
+          .slice(0, -1)
+          .join('/');
+        const path = resolve(formSchemaDir, `${src}.ts`);
+
+        const imports = node.specifiers;
+
+        imports.forEach((specifier) => {
+          this.externalRefs[specifier.local.value] = path;
+        });
+      }
+    });
   }
 
   async parseModule(ast: Module | WasmCompiler.Module) {
@@ -313,6 +401,10 @@ export class DynamicFormParser implements IDynamicFormParser {
         (node): node is TsTypeAliasDeclaration | TsEnumDeclaration =>
           node !== null
       );
+
+    if (this.isServerSideCompiler()) {
+      this.parseImports(ast as Module);
+    }
 
     let enums = ast.body.filter(
       (node) => node.type === 'TsEnumDeclaration'
@@ -334,6 +426,8 @@ export class DynamicFormParser implements IDynamicFormParser {
     ) as ClassDeclaration[];
 
     classDeclarations.forEach(this.classDeclarationToForm.bind(this));
+
+    await this.resolveMissingRefs();
 
     return this.getFormSchema();
   }

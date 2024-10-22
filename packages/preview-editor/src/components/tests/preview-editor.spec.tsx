@@ -1,6 +1,6 @@
 import { render, screen, waitFor, RenderOptions } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import { DynamicFormContext } from '~renderers/dynamic-form';
+import { DynamicFormContext } from '~ui/dynamic-form';
 
 import { PreviewEditor } from '../preview-editor';
 

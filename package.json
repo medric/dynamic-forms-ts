@@ -11,7 +11,7 @@
   "scripts": {
     "test": "jest",
     "clean": "rimraf ./dist",
-    "build": "npm run clean && tsc && tsc-alias -p tsconfig.json && cp packages/renderers/styles/*.css dist/"
+    "build": "npm run clean && tsc && tsc-alias -p tsconfig.json && cp packages/ui/styles/*.css dist/"
   },
   "bin": {
     "dynamic-forms": "./bin/ts-dynamic-forms.js"
@@ -22,6 +22,7 @@
   "author": "médric",
   "license": "ISC",
   "dependencies": {
+    "@swc/wasm": "^1.7.36",
     "@swc/wasm-web": "^1.7.35",
     "classnames": "^2.5.1",
     "commander": "^12.1.0",
@@ -53,6 +54,7 @@
     "tsconfig-paths": "^4.2.0",
     "typescript": "^5.6.3",
     "typescript-transform-paths": "^3.5.1",
-    "vite": "^5.4.8"
+    "vite": "^5.4.9",
+    "vite-plugin-watch": "^0.3.1"
   }
 }
