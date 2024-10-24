@@ -1,4 +1,4 @@
-<img src="./assets/lib-icon.svg" width=700>
+<img src="./assets/lib-icon.svg" width=500>
 
 ## Overview
 
@@ -20,7 +20,7 @@
 ts-dynamic-forms/
 ├── packages/
 │   ├── core/            # Core logic for parsing TypeScript schemas and generating form configurations
-│   ├── renderers/       # React components responsible for rendering dynamic forms based on schemas
+│   ├── ui/       # React components responsible for rendering dynamic forms based on schemas
 │   ├── utils/           # Utility functions and helpers for form generation and validation
 │   ├── preview-editor/  # A playground environment to preview and interact with forms in the browser
 │   └── plugins/         # Extensions for customizing schema parsing and form generation
